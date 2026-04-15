@@ -2,15 +2,18 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Les pompiers sont là</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;width:100%}
-body{display:flex;align-items:center;justify-content:center;background:#05050a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;user-select:none;-webkit-user-select:none;touch-action:manipulation;overflow:hidden}
+html,body{height:100%;width:100%;position:fixed;inset:0;overscroll-behavior:none}
+body{display:flex;align-items:center;justify-content:center;background:#05050a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none;overflow:hidden}
 
-#wrap{width:400px;height:600px;transform-origin:center center;position:relative}
-#game{width:400px;height:600px;position:relative;overflow:hidden;border-radius:12px;border:2px solid #ff4500;box-shadow:0 0 40px rgba(255,69,0,.35),inset 0 0 60px rgba(0,0,0,.5);background:linear-gradient(180deg,#1a1a2e 0%,#16213e 38%,#0f3460 68%,#1a1a2e 100%)}
+#wrap{width:400px;height:600px;transform-origin:center center;position:relative;touch-action:none}
+#game{width:400px;height:600px;position:relative;overflow:hidden;border-radius:12px;border:2px solid #ff4500;box-shadow:0 0 40px rgba(255,69,0,.35),inset 0 0 60px rgba(0,0,0,.5);background:linear-gradient(180deg,#1a1a2e 0%,#16213e 38%,#0f3460 68%,#1a1a2e 100%);touch-action:none}
 
 /* Sky */
 #moon{position:absolute;top:20px;right:26px;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 32% 32%,#fff8d0,#ffd166);box-shadow:0 0 22px rgba(255,209,102,.5);z-index:1;pointer-events:none}
@@ -103,7 +106,7 @@ h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
 .tip{color:#bbb;font-size:13px;line-height:1.9}
 .tip .danger{color:#c47bf0;font-weight:800}
 .tip .water{color:#4ecdc4;font-weight:800}
-.btn{background:linear-gradient(135deg,#ff4500,#ff6b35);border:none;color:#fff;padding:14px 48px;border-radius:30px;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(255,69,0,.5);letter-spacing:2px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn{background:linear-gradient(135deg,#ff4500,#ff6b35);border:none;color:#fff;padding:14px 48px;border-radius:30px;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(255,69,0,.5);letter-spacing:2px;font-family:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation;pointer-events:auto;position:relative;z-index:50}
 .btn.teal{background:linear-gradient(135deg,#4ecdc4,#44a08d);box-shadow:0 4px 20px rgba(78,205,196,.4)}
 .btn:active{transform:scale(.96)}
 .hs{color:#ffd166;font-size:15px;font-weight:700}
@@ -137,7 +140,7 @@ h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
   <div id="menu" class="overlay">
     <div class="truck">🚒</div>
     <h1>LES POMPIERS<span class="sub">sont là !</span></h1>
-    <div class="tip">🔥 Éteins les baigneuses enflammées !<br>💧 <span class="water">Maintiens ESPACE</span> pour lancer l'eau<br>⚠️ <span class="danger">Relâche devant la sorcière !</span><br>📱 Touche et glisse sur mobile</div>
+    <div class="tip">🔥 Éteins les baigneuses enflammées !<br>💧 <span class="water">Maintiens appuyé</span> pour lancer l'eau<br>⚠️ <span class="danger">Relâche devant la sorcière !</span><br>📱 Appuie et glisse pour déplacer</div>
     <button id="playBtn" class="btn">JOUER</button>
     <div id="menuHs" class="hs"></div>
   </div>
@@ -365,7 +368,10 @@ function buildBg(){
   });
 }
 function fitScale(){
-  const s=Math.min(window.innerWidth/GAME_W, window.innerHeight/GAME_H);
+  const vv=window.visualViewport;
+  const w=vv?vv.width:window.innerWidth;
+  const h=vv?vv.height:window.innerHeight;
+  const s=Math.min(w/GAME_W, h/GAME_H);
   wrapEl.style.transform=`scale(${s})`;
 }
 
@@ -467,6 +473,7 @@ function startGame(){
   if(!audioCtx){
     try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
   }
+  if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume().catch(()=>{}); }
   scene='play';
   score=0; combo=0; lvl=1;
   ffX=GAME_W/2-FF_W/2;
@@ -746,51 +753,61 @@ window.addEventListener('keyup', e=>{
   keys[e.key]=false;
   if(e.key===' '||e.key==='ArrowUp'){ isSpraying=false; }
 });
-window.addEventListener('blur', ()=>{ keys={}; isSpraying=false; });
 
 function relX(clientX){
   const r=gameEl.getBoundingClientRect();
   return (clientX-r.left)*(GAME_W/r.width);
 }
-gameEl.addEventListener('touchstart', e=>{
-  if(scene!=='play') return;
-  e.preventDefault();
-  const x=relX(e.touches[0].clientX);
-  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
-  isSpraying=true;
-},{passive:false});
-gameEl.addEventListener('touchmove', e=>{
-  if(scene!=='play') return;
-  e.preventDefault();
-  const x=relX(e.touches[0].clientX);
-  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
-},{passive:false});
-gameEl.addEventListener('touchend', ()=>{ isSpraying=false; });
-gameEl.addEventListener('touchcancel', ()=>{ isSpraying=false; });
-
-gameEl.addEventListener('mousedown', e=>{
+let activePointerId=null;
+gameEl.addEventListener('pointerdown', e=>{
   if(scene!=='play') return;
   if(e.target.closest('button')) return;
+  e.preventDefault();
+  activePointerId=e.pointerId;
+  try{ gameEl.setPointerCapture(e.pointerId); }catch(_){}
   const x=relX(e.clientX);
   ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
   isSpraying=true;
 });
-gameEl.addEventListener('mousemove', e=>{
-  if(scene!=='play'||!isSpraying) return;
+gameEl.addEventListener('pointermove', e=>{
+  if(scene!=='play') return;
+  if(activePointerId!==null && e.pointerId!==activePointerId) return;
+  if(!isSpraying && e.pointerType!=='mouse') return;
+  e.preventDefault();
   const x=relX(e.clientX);
   ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
 });
-window.addEventListener('mouseup', ()=>{ isSpraying=false; });
+function endPointer(e){
+  if(activePointerId!==null && e && e.pointerId!==activePointerId) return;
+  activePointerId=null;
+  isSpraying=false;
+}
+gameEl.addEventListener('pointerup', endPointer);
+gameEl.addEventListener('pointercancel', endPointer);
+gameEl.addEventListener('pointerleave', e=>{ if(e.pointerType==='mouse') isSpraying=false; });
+window.addEventListener('blur', ()=>{ activePointerId=null; isSpraying=false; keys={}; });
 
-$('playBtn').addEventListener('click', startGame);
-$('replayBtn').addEventListener('click', startGame);
+// Play buttons — both click and touchstart for instant mobile response
+function bindPlay(btn){
+  btn.addEventListener('click', e=>{ e.preventDefault(); startGame(); });
+  btn.addEventListener('touchstart', e=>{ e.preventDefault(); startGame(); },{passive:false});
+}
+bindPlay($('playBtn'));
+bindPlay($('replayBtn'));
 
 // ============ INIT ============
 buildBg();
 ffEl.innerHTML = FF_SVG;
 fitScale();
 window.addEventListener('resize', fitScale);
-window.addEventListener('orientationchange', fitScale);
+window.addEventListener('orientationchange', ()=>setTimeout(fitScale,200));
+if(window.visualViewport){
+  window.visualViewport.addEventListener('resize', fitScale);
+  window.visualViewport.addEventListener('scroll', fitScale);
+}
+// Prevent iOS double-tap zoom & pinch
+document.addEventListener('gesturestart', e=>e.preventDefault());
+document.addEventListener('dblclick', e=>e.preventDefault());
 $('menuHs').textContent=hs>0?`🏆 Meilleur score : ${hs}`:'';
 bestValEl.textContent=hs;
 ffEl.style.left=ffX+'px';
