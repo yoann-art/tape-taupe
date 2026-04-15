@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pompier - Sauveur de Flammes</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;width:100%}
+body{display:flex;align-items:center;justify-content:center;background:#05050a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;user-select:none;-webkit-user-select:none;touch-action:manipulation;overflow:hidden}
+
+#wrap{width:400px;height:600px;transform-origin:center center;position:relative}
+#game{width:400px;height:600px;position:relative;overflow:hidden;border-radius:12px;border:2px solid #ff4500;box-shadow:0 0 40px rgba(255,69,0,.35),inset 0 0 60px rgba(0,0,0,.5);background:linear-gradient(180deg,#1a1a2e 0%,#16213e 38%,#0f3460 68%,#1a1a2e 100%)}
+
+/* Sky */
+#moon{position:absolute;top:20px;right:26px;width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 32% 32%,#fff8d0,#ffd166);box-shadow:0 0 22px rgba(255,209,102,.5);z-index:1;pointer-events:none}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 2s ease-in-out infinite;z-index:1;pointer-events:none}
+@keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* Buildings */
+.bld{position:absolute;bottom:60px;background:linear-gradient(180deg,#1a1a3e,#12122a);border-radius:4px 4px 0 0;opacity:.55;z-index:1}
+.wndrow{position:absolute;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+.wnd{width:6px;height:10px;border-radius:1px}
+
+/* Ground */
+#ground{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(180deg,#2d2d2d,#1a1a1a);border-top:2px solid #444;z-index:1}
+#ground::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ffd166,transparent);opacity:.5}
+
+/* HUD */
+#hud{position:absolute;top:8px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:center;z-index:20;pointer-events:none}
+#best{color:#ffd166;font-size:13px;font-weight:800;text-shadow:0 0 6px rgba(255,209,102,.4)}
+#score{color:#fff;font-size:26px;font-weight:900;text-shadow:0 0 14px rgba(255,209,102,.7)}
+#score.pop{animation:scorePop .3s ease-out}
+@keyframes scorePop{0%{transform:scale(1);color:#fff}40%{transform:scale(1.35);color:#ffd166}100%{transform:scale(1);color:#fff}}
+#info{color:#4ecdc4;font-size:14px;font-weight:900;text-shadow:0 0 8px rgba(78,205,196,.5)}
+#info.combo{color:#ffd166;text-shadow:0 0 10px rgba(255,209,102,.7);animation:comboPulse .3s}
+@keyframes comboPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+
+/* Combo flash */
+#combo{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);color:#ffd166;font-size:32px;font-weight:900;text-shadow:0 0 20px rgba(255,209,102,.8);z-index:30;pointer-events:none;display:none;white-space:nowrap}
+#combo.show{display:block;animation:comboAnim .8s ease-out forwards}
+@keyframes comboAnim{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+
+#newrec{position:absolute;top:16%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:22px;font-weight:900;text-shadow:0 0 16px #4ecdc4,0 0 30px #4ecdc4;z-index:30;pointer-events:none;display:none;white-space:nowrap;letter-spacing:2px}
+#newrec.show{display:block;animation:comboAnim 1.4s ease-out forwards}
+
+/* Targets */
+.target{position:absolute;display:flex;align-items:center;justify-content:center;z-index:10;will-change:left}
+.target.girl{width:40px;height:72px}
+.target.witch{width:44px;height:82px}
+.target svg{width:100%;height:100%;display:block;position:relative;z-index:2;overflow:visible}
+.target .glow{position:absolute;border-radius:50%;z-index:1;pointer-events:none}
+.target.girl .glow{left:-12px;top:-6px;width:64px;height:84px;box-shadow:0 0 18px 8px rgba(255,100,0,.75);background:radial-gradient(ellipse,rgba(255,100,0,.35),transparent 65%);animation:firePulse .35s ease-in-out infinite alternate}
+@keyframes firePulse{from{opacity:.8;transform:scale(.97)}to{opacity:1;transform:scale(1.04)}}
+.target.witch .glow{left:-10px;top:-6px;width:64px;height:94px;background:radial-gradient(ellipse,rgba(160,70,220,.5),transparent 65%);box-shadow:0 0 24px 10px rgba(160,70,220,.75);animation:witchPulse .6s ease-in-out infinite alternate}
+@keyframes witchPulse{from{transform:scale(1);opacity:.75}to{transform:scale(1.18);opacity:1}}
+
+/* Fire flames on burning girls */
+.target .fire{position:absolute;font-size:18px;line-height:1;z-index:4;pointer-events:none;filter:drop-shadow(0 0 4px #ff6b00)}
+.target .f1{top:-20px;left:50%;transform:translateX(-50%);font-size:22px;animation:fireWobble .3s infinite alternate}
+.target .f2{top:10px;left:-10px;animation:fireWobble .35s .1s infinite alternate-reverse}
+.target .f3{top:26px;right:-10px;animation:fireWobble .4s .15s infinite alternate}
+.target .f4{top:46px;left:-6px;font-size:14px;animation:fireWobble .32s .2s infinite alternate-reverse}
+@keyframes fireWobble{0%{transform:translateX(-2px) translateY(0) scale(.9)}100%{transform:translateX(2px) translateY(-2px) scale(1.1)}}
+
+.target .warn{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:18px;animation:warnBlink .3s infinite;z-index:4;line-height:1;filter:drop-shadow(0 0 6px #a046dc)}
+@keyframes warnBlink{0%,100%{opacity:1;transform:translateX(-50%) scale(1)}50%{opacity:.4;transform:translateX(-50%) scale(.85)}}
+
+.target .hpbar{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:34px;height:4px;background:rgba(0,0,0,.6);border-radius:2px;overflow:hidden;z-index:5}
+.target .hpfill{height:100%;border-radius:2px;transition:width .08s,background .15s;width:100%;background:#ff6b35}
+
+.target.shaking svg{animation:shakeSprite .12s infinite}
+@keyframes shakeSprite{0%{transform:translateX(-1.5px) rotate(-2deg)}50%{transform:translateX(1.5px) rotate(2deg)}100%{transform:translateX(-1.5px) rotate(-2deg)}}
+
+/* Beam */
+#beam{position:absolute;width:10px;background:linear-gradient(to top,rgba(78,205,196,.95) 0%,rgba(135,206,235,.85) 25%,rgba(175,220,240,.55) 60%,rgba(200,230,240,.2) 100%);box-shadow:0 0 14px rgba(78,205,196,.9),0 0 28px rgba(135,206,235,.45);border-radius:5px;pointer-events:none;z-index:14;display:none;overflow:hidden}
+#beam.on{display:block}
+#beam::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to top,transparent 0,transparent 8px,rgba(255,255,255,.45) 8px,rgba(255,255,255,.45) 13px);animation:waterFlow .25s linear infinite;border-radius:inherit;opacity:.7}
+@keyframes waterFlow{from{background-position:0 0}to{background-position:0 -21px}}
+
+/* Particles & popups */
+.part{position:absolute;border-radius:50%;pointer-events:none;z-index:25}
+.popup{position:absolute;font-size:17px;font-weight:900;color:#ffd166;text-shadow:0 0 8px rgba(255,209,102,.9);pointer-events:none;z-index:35;animation:popupFloat 1s ease-out forwards;white-space:nowrap;transform:translate(-50%,0)}
+@keyframes popupFloat{0%{opacity:1;transform:translate(-50%,0) scale(.7)}20%{transform:translate(-50%,-6px) scale(1.25)}100%{opacity:0;transform:translate(-50%,-46px) scale(1)}}
+
+/* Firefighter */
+#ff{position:absolute;bottom:60px;width:54px;height:90px;z-index:15;pointer-events:none;will-change:left}
+#ff svg{width:100%;height:100%;display:block;overflow:visible}
+#ff.spraying svg{animation:ffShake .08s infinite}
+@keyframes ffShake{0%{transform:translateX(-1px)}50%{transform:translateX(1px)}100%{transform:translateX(-1px)}}
+
+/* Red flash */
+#redFlash{position:absolute;inset:0;background:rgba(255,30,30,.45);pointer-events:none;z-index:50;animation:flashRed .7s ease-out forwards}
+@keyframes flashRed{0%{opacity:1}100%{opacity:0}}
+
+/* Overlays */
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:40;padding:28px;text-align:center;background:linear-gradient(180deg,#1a1a2e 0%,#16213e 40%,#0f3460 70%,#1a1a2e 100%)}
+.overlay.hidden{display:none}
+#menu .truck{font-size:60px;animation:pulse 1.5s infinite;line-height:1}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+h1{color:#ff6b35;font-size:32px;font-weight:900;text-shadow:0 0 20px rgba(255,107,53,.6);line-height:1.25}
+h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
+.tip{color:#bbb;font-size:13px;line-height:1.9}
+.tip .danger{color:#c47bf0;font-weight:800}
+.tip .water{color:#4ecdc4;font-weight:800}
+.btn{background:linear-gradient(135deg,#ff4500,#ff6b35);border:none;color:#fff;padding:14px 48px;border-radius:30px;font-size:18px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(255,69,0,.5);letter-spacing:2px;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.btn.teal{background:linear-gradient(135deg,#4ecdc4,#44a08d);box-shadow:0 4px 20px rgba(78,205,196,.4)}
+.btn:active{transform:scale(.96)}
+.hs{color:#ffd166;font-size:15px;font-weight:700}
+#over .sad{font-size:48px;line-height:1}
+#over h2{color:#ff4500;font-size:28px;font-weight:900}
+#over .bigscore{color:#ffd166;font-size:28px;font-weight:800}
+#over .rec{color:#4ecdc4;font-size:15px;font-weight:800;display:none}
+#over .niv{color:#aaa;font-size:13px;line-height:1.7}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="game">
+  <div id="bldContainer"></div>
+  <div id="moon"></div>
+  <div id="ground"></div>
+
+  <div id="hud">
+    <span id="best">🏆 <span id="bestVal">0</span></span>
+    <span id="score">0</span>
+    <span id="info">Niv.1</span>
+  </div>
+
+  <div id="targets"></div>
+  <div id="parts"></div>
+  <div id="beam"></div>
+  <div id="ff"></div>
+  <div id="combo"></div>
+  <div id="newrec">NOUVEAU RECORD !</div>
+
+  <div id="menu" class="overlay">
+    <div class="truck">🚒</div>
+    <h1>POMPIER<span class="sub">Sauveur de Flammes</span></h1>
+    <div class="tip">🔥 Éteins les baigneuses enflammées !<br>💧 <span class="water">Maintiens ESPACE</span> pour lancer l'eau<br>⚠️ <span class="danger">Relâche devant la sorcière !</span><br>📱 Touche et glisse sur mobile</div>
+    <button id="playBtn" class="btn">JOUER</button>
+    <div id="menuHs" class="hs"></div>
+  </div>
+
+  <div id="over" class="overlay hidden">
+    <div class="sad">🧙‍♀️💥</div>
+    <h2>GAME OVER</h2>
+    <div class="bigscore">Score : <span id="overScore">0</span></div>
+    <div class="rec" id="overRec">⭐ NOUVEAU RECORD ⭐</div>
+    <div class="niv">⏱️ Survie : <span id="overTime">0s</span><br>🏆 Record : <span id="overBest">0</span></div>
+    <button id="replayBtn" class="btn teal">REJOUER</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ============ SVG SPRITES ============
+const FF_SVG = `<svg viewBox="0 0 54 90" xmlns="http://www.w3.org/2000/svg">
+<rect x="14" y="78" width="14" height="11" fill="#0a0a12" rx="2"/>
+<rect x="26" y="78" width="14" height="11" fill="#0a0a12" rx="2"/>
+<rect x="17" y="56" width="9" height="24" fill="#1a1a3e"/>
+<rect x="28" y="56" width="9" height="24" fill="#1a1a3e"/>
+<rect x="17" y="70" width="9" height="2.5" fill="#ffeb3b"/>
+<rect x="28" y="70" width="9" height="2.5" fill="#ffeb3b"/>
+<path d="M13 28 Q13 25 27 25 Q41 25 41 28 L41 58 Q41 61 38 61 L16 61 Q13 61 13 58 Z" fill="#c23616"/>
+<path d="M13 28 L27 28 L27 58 L16 58 Q14 56 14 54 Z" fill="#9a2510"/>
+<rect x="13" y="48" width="28" height="3" fill="#fff059"/>
+<rect x="13" y="53" width="28" height="1.5" fill="#fff8c0"/>
+<circle cx="27" cy="36" r="1.3" fill="#ffd700"/>
+<circle cx="27" cy="42" r="1.3" fill="#ffd700"/>
+<rect x="18" y="33" width="6" height="4" fill="#ffd700" rx=".5"/>
+<path d="M13 28 Q5 32 7 52 Q9 58 13 56 L13 30 Z" fill="#c23616"/>
+<path d="M41 28 Q49 32 47 52 Q45 58 41 56 L41 30 Z" fill="#9a2510"/>
+<circle cx="22" cy="33" r="4.5" fill="#d4a574"/>
+<circle cx="32" cy="33" r="4.5" fill="#d4a574"/>
+<circle cx="22" cy="32" r="1.5" fill="#e8b888"/>
+<circle cx="32" cy="32" r="1.5" fill="#e8b888"/>
+<rect x="24" y="4" width="6" height="30" fill="#3a3a3a"/>
+<rect x="24.5" y="4" width="1.8" height="30" fill="#5a5a5a"/>
+<rect x="28" y="4" width="1.8" height="30" fill="#1a1a1a"/>
+<line x1="24" y1="10" x2="30" y2="10" stroke="#111" stroke-width=".5"/>
+<line x1="24" y1="16" x2="30" y2="16" stroke="#111" stroke-width=".5"/>
+<line x1="24" y1="22" x2="30" y2="22" stroke="#111" stroke-width=".5"/>
+<line x1="24" y1="28" x2="30" y2="28" stroke="#111" stroke-width=".5"/>
+<path d="M22 4 L32 4 L30 1 L24 1 Z" fill="#999"/>
+<path d="M23 4 L31 4 L30 2 L24 2 Z" fill="#bbb"/>
+<circle cx="27" cy="2" r="1.3" fill="#4ecdc4"/>
+<rect x="23" y="17" width="8" height="7" fill="#d4a574"/>
+<circle cx="27" cy="12" r="7.5" fill="#d4a574"/>
+<path d="M20 4 Q20 0 27 -.5 Q34 0 34 4 L34 12 L20 12 Z" fill="#d32f2f"/>
+<rect x="25.5" y="-.5" width="3" height="12.5" fill="#a01818"/>
+<circle cx="27" cy="6" r="2.3" fill="#ffd700"/>
+<path d="M27 4 L28.3 6 L27 8 L25.7 6 Z" fill="#c29d00"/>
+<ellipse cx="27" cy="13" rx="11" ry="2.2" fill="#d32f2f"/>
+<ellipse cx="27" cy="13" rx="11" ry="2.2" fill="none" stroke="#8a1212" stroke-width=".4"/>
+<circle cx="24" cy="13" r=".8" fill="#222"/>
+<circle cx="30" cy="13" r=".8" fill="#222"/>
+<path d="M24 16 Q27 17.5 30 16" stroke="#5a3418" stroke-width=".8" fill="none" stroke-linecap="round"/>
+<path d="M22 15 Q27 18 32 15" stroke="#4a2818" stroke-width=".5" fill="none"/>
+</svg>`;
+
+const WITCH_SVG = `<svg viewBox="0 0 44 82" xmlns="http://www.w3.org/2000/svg">
+<path d="M4 42 L8 32 L22 30 L36 32 L40 42 L43 76 Q35 79 30 76 L25 72 L22 75 L19 72 L14 76 Q9 79 1 76 Z" fill="#1a0a28"/>
+<path d="M14 44 L22 41 L30 44 L30 69 Q25 70 22 69 Q19 70 14 69 Z" fill="#3a1858"/>
+<path d="M15 36 L29 36 L28 58 L16 58 Z" fill="#0a0618"/>
+<rect x="14" y="46" width="16" height="3" fill="#7a5c00"/>
+<rect x="20" y="45" width="4" height="5" fill="#ffd700"/>
+<path d="M13 38 Q4 46 5 60 L10 58 L11 46 Z" fill="#1a0a28"/>
+<path d="M31 38 Q40 46 39 60 L34 58 L33 46 Z" fill="#1a0a28"/>
+<path d="M4 60 Q3 66 1 68 M6 60 Q5 67 4 70 M8 60 Q8 67 7 71" stroke="#7dc85a" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+<path d="M40 60 Q41 66 43 68 M38 60 Q39 67 40 70 M36 60 Q36 67 37 71" stroke="#7dc85a" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+<rect x="19" y="30" width="6" height="5" fill="#6db84a"/>
+<ellipse cx="22" cy="22" rx="9" ry="10" fill="#6db84a"/>
+<path d="M13 22 Q9 34 11 36 Q13 28 14 26 Z" fill="#2a1a1a"/>
+<path d="M31 22 Q35 34 33 36 Q31 28 30 26 Z" fill="#2a1a1a"/>
+<circle cx="26" cy="28" r="1.4" fill="#4a8a3a"/>
+<circle cx="16" cy="24" r="1" fill="#4a8a3a"/>
+<path d="M22 21 Q25 24 24 28 Q23 29 22 28 Z" fill="#4a8a3a"/>
+<ellipse cx="18" cy="20" rx="2" ry="1.5" fill="#ffea00"/>
+<ellipse cx="26" cy="20" rx="2" ry="1.5" fill="#ffea00"/>
+<circle cx="18" cy="20" r=".9" fill="#c00"/>
+<circle cx="26" cy="20" r=".9" fill="#c00"/>
+<path d="M15 17 L20.5 18.5" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
+<path d="M29 17 L23.5 18.5" stroke="#000" stroke-width="1.2" stroke-linecap="round"/>
+<path d="M17 26 Q22 27 27 26 L27 27 L17 27 Z" fill="#1a1a1a"/>
+<path d="M19 26 L20 28.5 L21 26 Z" fill="#fff"/>
+<path d="M23 26 L24 28.5 L25 26 Z" fill="#fff"/>
+<ellipse cx="22" cy="14" rx="17" ry="2.5" fill="#0a0618"/>
+<path d="M14 14 Q22 2 30 14 Z" fill="#1a0a28"/>
+<path d="M28 5 Q31 3 32 1" stroke="#1a0a28" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<rect x="20" y="10" width="4" height="2" fill="#ffd700"/>
+</svg>`;
+
+function girlSvg(hair, bikini, skin){
+  return `<svg viewBox="0 0 40 72" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 11 Q9 4 20 2 Q31 4 31 11 L32 44 Q32 50 28 50 Q28 30 26 22 L14 22 Q12 30 12 44 Q8 50 8 44 Z" fill="${hair}"/>
+<rect x="15" y="48" width="4" height="19" rx="1.5" fill="${skin}"/>
+<rect x="21" y="48" width="4" height="19" rx="1.5" fill="${skin}"/>
+<ellipse cx="17" cy="68" rx="3" ry="1.5" fill="${bikini}"/>
+<ellipse cx="23" cy="68" rx="3" ry="1.5" fill="${bikini}"/>
+<path d="M14 28 Q14 26 20 26 Q26 26 26 28 L26 46 Q26 48 24 48 L16 48 Q14 48 14 46 Z" fill="${skin}"/>
+<path d="M14 44 Q20 43 26 44 L26 48 Q20 49 14 48 Z" fill="${bikini}"/>
+<path d="M13 42 L14 45 M26 42 L25 45" stroke="${bikini}" stroke-width="1" stroke-linecap="round"/>
+<path d="M13 27 Q20 25 27 27 L27 31 Q20 32 13 31 Z" fill="${bikini}"/>
+<line x1="15" y1="27" x2="15" y2="23" stroke="${bikini}" stroke-width="1"/>
+<line x1="25" y1="27" x2="25" y2="23" stroke="${bikini}" stroke-width="1"/>
+<path d="M17 24 Q20 22 23 24" stroke="${bikini}" stroke-width="1" fill="none"/>
+<ellipse cx="10" cy="37" rx="2.5" ry="9" fill="${skin}"/>
+<ellipse cx="30" cy="37" rx="2.5" ry="9" fill="${skin}"/>
+<circle cx="10" cy="46" r="2" fill="${skin}"/>
+<circle cx="30" cy="46" r="2" fill="${skin}"/>
+<rect x="18" y="19" width="4" height="5" fill="${skin}"/>
+<circle cx="20" cy="14" r="7" fill="${skin}"/>
+<path d="M13 13 Q13 5 20 3 Q27 5 27 13 L26 16 Q25 13 22 12 Q20 11 18 12 Q15 13 14 16 Z" fill="${hair}"/>
+<circle cx="17" cy="14" r="1" fill="#222"/>
+<circle cx="23" cy="14" r="1" fill="#222"/>
+<circle cx="17.2" cy="13.7" r=".35" fill="#fff"/>
+<circle cx="23.2" cy="13.7" r=".35" fill="#fff"/>
+<ellipse cx="15" cy="16" rx="1.2" ry=".7" fill="#ff8080" opacity=".55"/>
+<ellipse cx="25" cy="16" rx="1.2" ry=".7" fill="#ff8080" opacity=".55"/>
+<path d="M17.5 17.5 Q20 19 22.5 17.5" stroke="#c62828" stroke-width=".8" fill="none" stroke-linecap="round"/>
+<circle cx="20" cy="40" r=".5" fill="#000" opacity=".35"/>
+</svg>`;
+}
+
+// ============ CONSTANTS ============
+const GAME_W=400, GAME_H=600;
+const FF_W=54, FF_H=90;
+const BEAM_ORIGIN_Y=450;
+const BEAM_W=10;
+const GIRL_W=40, GIRL_H=72;
+const WITCH_W=44, WITCH_H=82;
+const FF_SPEED=6.5;
+const SPAWN_INIT=1500;
+const LANES=[{y:28,dir:1},{y:138,dir:-1}];
+const HAIRS=["#f4c842","#d49a1a","#8b4513","#2c1810","#a0332a","#e67e22","#5a2a7a","#2a2a2a"];
+const BIKINIS=["#ff1e56","#e91e63","#00bcd4","#4caf50","#ffc107","#ff5722","#9c27b0","#ffffff","#000000","#f50057","#03a9f4"];
+const SKINS=["#f4c8a0","#e8b888","#d4a574","#c89060","#a67852"];
+
+// ============ STATE ============
+let scene='menu';
+let score=0, combo=0, lvl=1;
+let ffX=GAME_W/2-FF_W/2;
+let isSpraying=false;
+let targets=[], parts=[];
+let nextId=0;
+let lastSpawn=0, lastTime=0, gameStartTime=0;
+let keys={};
+let hs=parseInt(localStorage.getItem('pompier_best')||'0');
+let sessionStartHs=hs;
+let dying=false;
+let shakeUntil=0, shakeAmount=0;
+let recordCelebrated=false;
+let comboTimer=null;
+let audioCtx=null;
+
+// ============ DOM ============
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>Math.random()*(b-a)+a;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const gameEl=$('game'), wrapEl=$('wrap');
+const targetsEl=$('targets'), partsEl=$('parts');
+const ffEl=$('ff'), beamEl=$('beam');
+const scoreEl=$('score'), bestValEl=$('bestVal'), infoEl=$('info');
+const menuEl=$('menu'), overEl=$('over'), comboEl=$('combo'), newrecEl=$('newrec');
+
+// ============ AUDIO ============
+function beep(freq,dur=.08,type='square',vol=.08){
+  if(!audioCtx) return;
+  const t=audioCtx.currentTime;
+  const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t+dur);
+}
+function sSave(c){
+  beep(660+Math.min(c,12)*50,.07,'square',.06);
+  setTimeout(()=>beep(880+Math.min(c,12)*70,.09,'square',.06),40);
+}
+function sWitch(){
+  beep(160,.45,'sawtooth',.12);
+  setTimeout(()=>beep(110,.55,'sawtooth',.12),110);
+}
+function sRecord(){
+  beep(660,.1,'triangle',.1);
+  setTimeout(()=>beep(880,.1,'triangle',.1),90);
+  setTimeout(()=>beep(1320,.22,'triangle',.1),180);
+}
+function vibe(p){ if(navigator.vibrate) navigator.vibrate(p); }
+
+// ============ DECORATIONS ============
+function buildBg(){
+  const c=$('bldContainer');
+  for(let i=0;i<32;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    s.style.left=rand(2,98)+'%';
+    s.style.top=rand(2,48)+'%';
+    s.style.animationDelay=rand(0,2)+'s';
+    c.appendChild(s);
+  }
+  const blds=[{x:10,w:50,h:200},{x:70,w:40,h:150},{x:120,w:60,h:250},{x:200,w:45,h:180},{x:260,w:55,h:220},{x:330,w:50,h:170},{x:360,w:40,h:130}];
+  blds.forEach(b=>{
+    const d=document.createElement('div');
+    d.className='bld';
+    d.style.left=b.x+'px';
+    d.style.width=b.w+'px';
+    d.style.height=b.h+'px';
+    const rows=Math.floor(b.h/25), cols=Math.max(1,Math.floor(b.w/20));
+    for(let j=0;j<rows;j++){
+      const row=document.createElement('div');
+      row.className='wndrow';
+      row.style.top=(10+j*25)+'px';
+      for(let k=0;k<cols;k++){
+        const w=document.createElement('div');
+        w.className='wnd';
+        w.style.background=Math.random()>.5?'rgba(255,220,100,.6)':'rgba(100,100,140,.3)';
+        row.appendChild(w);
+      }
+      d.appendChild(row);
+    }
+    c.appendChild(d);
+  });
+}
+function fitScale(){
+  const s=Math.min(window.innerWidth/GAME_W, window.innerHeight/GAME_H);
+  wrapEl.style.transform=`scale(${s})`;
+}
+
+// ============ SPAWNING ============
+function spawnTarget(){
+  const lane=pick(LANES);
+  const witchChance=Math.min(.45, .1+lvl*.022);
+  const isWitch=Math.random()<witchChance;
+  const baseSpeed=1.3+lvl*.12;
+  const speed=(baseSpeed+rand(-.15,.3))*lane.dir*(isWitch?1.05:1);
+  const w=isWitch?WITCH_W:GIRL_W;
+  const h=isWitch?WITCH_H:GIRL_H;
+  const startX=lane.dir>0 ? -w-10 : GAME_W+10;
+  const svg=isWitch ? WITCH_SVG : girlSvg(pick(HAIRS), pick(BIKINIS), pick(SKINS));
+  targets.push({
+    id:nextId++,
+    type:isWitch?'witch':'girl',
+    svg,
+    x:startX,
+    y:lane.y+rand(-4,4),
+    w, h,
+    dx:speed,
+    hp:32, maxHp:32,
+    shakeUntil:0
+  });
+}
+
+// ============ PARTICLES & POPUPS ============
+function addParticles(x,y,type,n){
+  n=n||(type==='save'?16:type==='witchHit'?34:5);
+  for(let i=0;i<n;i++){
+    parts.push({
+      id:nextId++, x, y,
+      vx:rand(-4,4), vy:rand(-5,-1),
+      life:type==='witchHit'?1.5:1, type,
+      size:rand(4,11)
+    });
+  }
+  if(parts.length>200) parts=parts.slice(-200);
+}
+function scorePopup(x,y,text,color){
+  const el=document.createElement('div');
+  el.className='popup';
+  el.textContent=text;
+  el.style.left=x+'px';
+  el.style.top=y+'px';
+  if(color) el.style.color=color;
+  gameEl.appendChild(el);
+  setTimeout(()=>el.remove(),1000);
+}
+function showCombo(c){
+  comboEl.textContent=`COMBO x${c}`;
+  clearTimeout(comboTimer);
+  comboEl.classList.remove('show');
+  void comboEl.offsetWidth;
+  comboEl.classList.add('show');
+  comboTimer=setTimeout(()=>comboEl.classList.remove('show'),800);
+}
+function showNewRecord(){
+  newrecEl.classList.remove('show');
+  void newrecEl.offsetWidth;
+  newrecEl.classList.add('show');
+  setTimeout(()=>newrecEl.classList.remove('show'),1400);
+}
+
+// ============ HUD ============
+function updateHUD(){
+  scoreEl.textContent=score;
+  bestValEl.textContent=hs;
+  if(combo>=2){
+    infoEl.textContent=`x${combo}`;
+    infoEl.className='combo';
+  } else {
+    infoEl.textContent='Niv.'+lvl;
+    infoEl.className='';
+  }
+}
+function popScore(){
+  scoreEl.classList.remove('pop');
+  void scoreEl.offsetWidth;
+  scoreEl.classList.add('pop');
+}
+function popCombo(){
+  infoEl.classList.remove('combo');
+  void infoEl.offsetWidth;
+  infoEl.classList.add('combo');
+}
+function shake(amt,dur){
+  shakeUntil=Math.max(shakeUntil, performance.now()+dur);
+  shakeAmount=Math.max(shakeAmount, amt);
+}
+function fmtTime(sec){
+  const m=Math.floor(sec/60), s=Math.floor(sec%60);
+  return m>0?`${m}m${String(s).padStart(2,'0')}s`:`${s}s`;
+}
+
+// ============ SCENES ============
+function startGame(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+  }
+  scene='play';
+  score=0; combo=0; lvl=1;
+  ffX=GAME_W/2-FF_W/2;
+  targets=[]; parts=[];
+  isSpraying=false; dying=false;
+  recordCelebrated=false;
+  sessionStartHs=hs;
+  keys={};
+  lastTime=0;
+  gameStartTime=performance.now();
+  lastSpawn=gameStartTime;
+  shakeUntil=0; shakeAmount=0;
+  targetsEl.innerHTML=''; partsEl.innerHTML='';
+  beamEl.classList.remove('on');
+  ffEl.classList.remove('spraying');
+  gameEl.style.transform='';
+  menuEl.classList.add('hidden');
+  overEl.classList.add('hidden');
+  comboEl.classList.remove('show');
+  newrecEl.classList.remove('show');
+  ffEl.style.left=ffX+'px';
+  updateHUD();
+  spawnTarget();
+  requestAnimationFrame(loop);
+}
+function endGame(){
+  scene='over';
+  dying=false;
+  isSpraying=false;
+  beamEl.classList.remove('on');
+  ffEl.classList.remove('spraying');
+  gameEl.style.transform='';
+  const elapsedSec=(performance.now()-gameStartTime)/1000;
+  const beaten=hs>sessionStartHs;
+  if(beaten) localStorage.setItem('pompier_best', String(hs));
+  $('overScore').textContent=score;
+  $('overBest').textContent=hs;
+  $('overTime').textContent=fmtTime(elapsedSec);
+  $('overRec').style.display=beaten?'block':'none';
+  $('menuHs').textContent=hs>0?`🏆 Meilleur score : ${hs}`:'';
+  overEl.classList.remove('hidden');
+}
+function witchHit(w){
+  if(dying) return;
+  dying=true;
+  isSpraying=false;
+  beamEl.classList.remove('on');
+  ffEl.classList.remove('spraying');
+  addParticles(w.x+w.w/2, w.y+w.h/2, 'witchHit', 34);
+  const flash=document.createElement('div');
+  flash.id='redFlash';
+  gameEl.appendChild(flash);
+  setTimeout(()=>{ if(flash.parentNode) flash.remove(); },700);
+  shake(14,430);
+  vibe([120,50,120,50,160]);
+  sWitch();
+  setTimeout(endGame,600);
+}
+
+// ============ RENDER ============
+function syncLayer(container, items, create, update){
+  const existing=new Map();
+  for(const c of container.children) existing.set(c.dataset.id, c);
+  const used=new Set();
+  for(const it of items){
+    const k=String(it.id);
+    let el=existing.get(k);
+    if(!el){
+      el=create(it);
+      el.dataset.id=k;
+      container.appendChild(el);
+    }
+    update(el,it);
+    used.add(k);
+  }
+  for(const [k,el] of existing){
+    if(!used.has(k)) el.remove();
+  }
+}
+function createTarget(t){
+  const el=document.createElement('div');
+  el.className='target '+t.type;
+  if(t.type==='girl'){
+    el.innerHTML='<div class="glow"></div>'+t.svg+'<div class="fire f1">🔥</div><div class="fire f2">🔥</div><div class="fire f3">🔥</div><div class="fire f4">🔥</div><div class="hpbar"><div class="hpfill"></div></div>';
+  } else {
+    el.innerHTML='<div class="glow"></div><div class="warn">⚠️</div>'+t.svg;
+  }
+  return el;
+}
+function updateTarget(el,t){
+  const now=performance.now();
+  el.style.left=t.x+'px';
+  el.style.top=t.y+'px';
+  const shaking=t.shakeUntil>now;
+  if(shaking) el.classList.add('shaking');
+  else el.classList.remove('shaking');
+  if(t.type==='girl'){
+    const hpPct=t.hp/t.maxHp;
+    const f=el.querySelector('.hpfill');
+    f.style.width=(hpPct*100)+'%';
+    f.style.background=hpPct>.3?'#ff6b35':'#4ecdc4';
+    const fires=el.querySelectorAll('.fire');
+    const op=String(.35+hpPct*.65);
+    for(const fire of fires) fire.style.opacity=op;
+  }
+}
+function createPart(p){
+  const el=document.createElement('div');
+  el.className='part';
+  if(p.type==='splash'){ el.style.background='#87ceeb'; el.style.boxShadow='0 0 4px #4ecdc4'; }
+  else if(p.type==='save'){ el.style.background='#ffd166'; el.style.boxShadow='0 0 8px #ffd166'; }
+  else if(p.type==='witchHit'){ el.style.background='#a046dc'; el.style.boxShadow='0 0 10px #a046dc'; }
+  else { el.style.background='#ff4500'; el.style.boxShadow='0 0 6px #ff4500'; }
+  return el;
+}
+function updatePart(el,p){
+  el.style.left=p.x+'px';
+  el.style.top=p.y+'px';
+  el.style.width=p.size+'px';
+  el.style.height=p.size+'px';
+  el.style.opacity=Math.max(0,p.life);
+}
+
+// ============ MAIN LOOP ============
+function loop(now){
+  if(scene!=='play') return;
+  const dt = lastTime ? Math.min(3, (now-lastTime)/16.67) : 1;
+  lastTime=now;
+
+  // Screen shake
+  if(now<shakeUntil){
+    const sx=(Math.random()-.5)*2*shakeAmount;
+    const sy=(Math.random()-.5)*2*shakeAmount;
+    gameEl.style.transform=`translate(${sx}px,${sy}px)`;
+  } else if(shakeAmount){
+    shakeAmount=0;
+    gameEl.style.transform='';
+  }
+
+  // Time-based level ramping
+  const elapsedSec=(now-gameStartTime)/1000;
+  const timeLvl=1+Math.floor(elapsedSec/15);
+  const scoreLvl=Math.floor(score/150)+1;
+  const newLvl=Math.max(timeLvl, scoreLvl);
+  if(newLvl!==lvl){
+    lvl=newLvl;
+    if(combo<2) updateHUD();
+  }
+
+  // Firefighter movement (keyboard)
+  if(!dying){
+    if(keys['ArrowLeft']||keys['a']||keys['q']) ffX -= FF_SPEED*dt;
+    if(keys['ArrowRight']||keys['d']) ffX += FF_SPEED*dt;
+    ffX=Math.max(0, Math.min(GAME_W-FF_W, ffX));
+  }
+  ffEl.style.left=ffX+'px';
+
+  // Target scrolling + exit check
+  if(!dying){
+    const kept=[];
+    for(const t of targets){
+      t.x += t.dx*dt;
+      const off = t.dx>0 ? t.x>GAME_W+10 : t.x<-t.w-10;
+      if(off){
+        if(t.type==='girl' && t.hp>0){
+          if(combo>=3) scorePopup(t.dx>0?GAME_W-20:20, t.y+20, 'RATÉ !','#ff4500');
+          combo=0;
+          updateHUD();
+        }
+      } else {
+        kept.push(t);
+      }
+    }
+    targets=kept;
+
+    // Spawn with time-scaled interval
+    const spawnInt=Math.max(400, SPAWN_INIT - lvl*95);
+    if(now-lastSpawn>spawnInt){
+      spawnTarget();
+      lastSpawn=now;
+      // Extra spawn chance at high levels
+      if(lvl>=6 && Math.random()<.15) spawnTarget();
+    }
+  }
+
+  // Beam processing
+  if(isSpraying && !dying){
+    beamEl.classList.add('on');
+    ffEl.classList.add('spraying');
+    const beamCX=ffX+FF_W/2;
+    let closest=null;
+    for(const t of targets){
+      if(t.type==='girl' && t.hp<=0) continue;
+      if(beamCX>=t.x && beamCX<=t.x+t.w){
+        if(!closest || t.y+t.h>closest.y+closest.h) closest=t;
+      }
+    }
+    let beamTop=0;
+    if(closest){
+      beamTop=closest.y+closest.h*.5;
+      if(closest.type==='witch'){
+        witchHit(closest);
+      } else {
+        closest.hp -= dt*1.1;
+        closest.shakeUntil=now+140;
+        if(Math.random()<.55) addParticles(beamCX-4, closest.y+closest.h*.4, 'splash', 1);
+      }
+    }
+    beamEl.style.left=(beamCX-BEAM_W/2)+'px';
+    beamEl.style.top=beamTop+'px';
+    beamEl.style.height=Math.max(0, BEAM_ORIGIN_Y-beamTop)+'px';
+  } else {
+    beamEl.classList.remove('on');
+    ffEl.classList.remove('spraying');
+  }
+
+  // Extinguished girls
+  if(!dying){
+    const stillUp=[];
+    let saved=0;
+    for(const t of targets){
+      if(t.type==='girl' && t.hp<=0){
+        saved++;
+        addParticles(t.x+t.w/2, t.y+t.h/2, 'save');
+        combo++;
+        const pts=10*Math.max(1,combo);
+        score+=pts;
+        scorePopup(t.x+t.w/2, t.y+10, '+'+pts);
+        popScore();
+        if(combo>=2) popCombo();
+        sSave(combo);
+        vibe(12);
+        if(combo>=3 && combo%3===0) showCombo(combo);
+      } else {
+        stillUp.push(t);
+      }
+    }
+    targets=stillUp;
+    if(saved>0){
+      if(score>hs){
+        hs=score;
+        if(!recordCelebrated && sessionStartHs>0){
+          recordCelebrated=true;
+          showNewRecord();
+          sRecord();
+          shake(6,300);
+          vibe([20,40,20,40,20]);
+        }
+      }
+      updateHUD();
+    }
+  }
+
+  // Particles physics
+  for(const p of parts){
+    p.x += p.vx*dt;
+    p.y += p.vy*dt;
+    p.vy += .18*dt;
+    p.life -= .028*dt;
+  }
+  parts = parts.filter(p=>p.life>0);
+
+  // Render
+  syncLayer(targetsEl, targets, createTarget, updateTarget);
+  syncLayer(partsEl, parts, createPart, updatePart);
+
+  requestAnimationFrame(loop);
+}
+
+// ============ INPUT ============
+window.addEventListener('keydown', e=>{
+  if(scene!=='play') return;
+  keys[e.key]=true;
+  if(e.key===' '||e.key==='ArrowUp'){ e.preventDefault(); isSpraying=true; }
+});
+window.addEventListener('keyup', e=>{
+  keys[e.key]=false;
+  if(e.key===' '||e.key==='ArrowUp'){ isSpraying=false; }
+});
+window.addEventListener('blur', ()=>{ keys={}; isSpraying=false; });
+
+function relX(clientX){
+  const r=gameEl.getBoundingClientRect();
+  return (clientX-r.left)*(GAME_W/r.width);
+}
+gameEl.addEventListener('touchstart', e=>{
+  if(scene!=='play') return;
+  e.preventDefault();
+  const x=relX(e.touches[0].clientX);
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
+  isSpraying=true;
+},{passive:false});
+gameEl.addEventListener('touchmove', e=>{
+  if(scene!=='play') return;
+  e.preventDefault();
+  const x=relX(e.touches[0].clientX);
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
+},{passive:false});
+gameEl.addEventListener('touchend', ()=>{ isSpraying=false; });
+gameEl.addEventListener('touchcancel', ()=>{ isSpraying=false; });
+
+gameEl.addEventListener('mousedown', e=>{
+  if(scene!=='play') return;
+  if(e.target.closest('button')) return;
+  const x=relX(e.clientX);
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
+  isSpraying=true;
+});
+gameEl.addEventListener('mousemove', e=>{
+  if(scene!=='play'||!isSpraying) return;
+  const x=relX(e.clientX);
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
+});
+window.addEventListener('mouseup', ()=>{ isSpraying=false; });
+
+$('playBtn').addEventListener('click', startGame);
+$('replayBtn').addEventListener('click', startGame);
+
+// ============ INIT ============
+buildBg();
+ffEl.innerHTML = FF_SVG;
+fitScale();
+window.addEventListener('resize', fitScale);
+window.addEventListener('orientationchange', fitScale);
+$('menuHs').textContent=hs>0?`🏆 Meilleur score : ${hs}`:'';
+bestValEl.textContent=hs;
+ffEl.style.left=ffX+'px';
+</script>
+</body>
+</html>
