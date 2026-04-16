@@ -35,9 +35,17 @@ body{display:flex;align-items:center;justify-content:center;background:#05050a;f
 #score{color:#fff;font-size:26px;font-weight:900;text-shadow:0 0 14px rgba(255,209,102,.7)}
 #score.pop{animation:scorePop .3s ease-out}
 @keyframes scorePop{0%{transform:scale(1);color:#fff}40%{transform:scale(1.35);color:#ffd166}100%{transform:scale(1);color:#fff}}
-#info{color:#4ecdc4;font-size:14px;font-weight:900;text-shadow:0 0 8px rgba(78,205,196,.5)}
+#infoWrap{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+#info{color:#4ecdc4;font-size:14px;font-weight:900;text-shadow:0 0 8px rgba(78,205,196,.5);line-height:1}
 #info.combo{color:#ffd166;text-shadow:0 0 10px rgba(255,209,102,.7);animation:comboPulse .3s}
 @keyframes comboPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+#maxLvlHud{color:#b388f0;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-shadow:0 0 5px rgba(179,136,240,.5);line-height:1;display:none}
+#maxLvlHud.beat{color:#ffd166;text-shadow:0 0 10px rgba(255,209,102,.9);animation:comboPulse .4s}
+
+/* Spray button */
+#sprayBtn{position:absolute;bottom:68px;right:14px;width:72px;height:72px;border-radius:50%;background:rgba(78,205,196,.18);border:3px solid rgba(78,205,196,.75);color:#fff;font-size:30px;cursor:pointer;z-index:20;display:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;box-shadow:0 0 18px rgba(78,205,196,.35);transition:background .08s,box-shadow .08s;align-items:center;justify-content:center;padding:0;font-family:inherit;outline:none;line-height:1}
+#sprayBtn.visible{display:flex}
+#sprayBtn.on{background:rgba(78,205,196,.55);box-shadow:0 0 36px rgba(78,205,196,.85),0 0 60px rgba(135,206,235,.35);border-color:rgba(135,206,235,.95)}
 
 /* Combo flash */
 #combo{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);color:#ffd166;font-size:32px;font-weight:900;text-shadow:0 0 20px rgba(255,209,102,.8);z-index:30;pointer-events:none;display:none;white-space:nowrap}
@@ -127,13 +135,17 @@ h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
   <div id="hud">
     <span id="best">🏆 <span id="bestVal">0</span></span>
     <span id="score">0</span>
-    <span id="info">Niv.1</span>
+    <div id="infoWrap">
+      <span id="info">Niv.1</span>
+      <span id="maxLvlHud">🏅 MAX: NIV.0</span>
+    </div>
   </div>
 
   <div id="targets"></div>
   <div id="parts"></div>
   <div id="beam"></div>
   <div id="ff"></div>
+  <button id="sprayBtn" aria-label="Lancer l'eau">💧</button>
   <div id="combo"></div>
   <div id="newrec">NOUVEAU RECORD !</div>
 
@@ -150,7 +162,7 @@ h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
     <h2>GAME OVER</h2>
     <div class="bigscore">Score : <span id="overScore">0</span></div>
     <div class="rec" id="overRec">⭐ NOUVEAU RECORD ⭐</div>
-    <div class="niv">⏱️ Survie : <span id="overTime">0s</span><br>🏆 Record : <span id="overBest">0</span></div>
+    <div class="niv">⏱️ Survie : <span id="overTime">0s</span><br>🏅 Niveau max : <span id="overMaxLvl">1</span><br>🏆 Record score : <span id="overBest">0</span></div>
     <button id="replayBtn" class="btn teal">REJOUER</button>
   </div>
 </div>
@@ -290,7 +302,9 @@ let nextId=0;
 let lastSpawn=0, lastTime=0, gameStartTime=0;
 let keys={};
 let hs=parseInt(localStorage.getItem('pompier_best')||'0');
+let maxLvlRecord=parseInt(localStorage.getItem('pompier_maxlvl')||'0');
 let sessionStartHs=hs;
+let sessionMaxLvl=1;
 let dying=false;
 let shakeUntil=0, shakeAmount=0;
 let recordCelebrated=false;
@@ -305,6 +319,8 @@ const gameEl=$('game'), wrapEl=$('wrap');
 const targetsEl=$('targets'), partsEl=$('parts');
 const ffEl=$('ff'), beamEl=$('beam');
 const scoreEl=$('score'), bestValEl=$('bestVal'), infoEl=$('info');
+const maxLvlHudEl=$('maxLvlHud');
+const sprayBtnEl=$('sprayBtn');
 const menuEl=$('menu'), overEl=$('over'), comboEl=$('combo'), newrecEl=$('newrec');
 
 // ============ AUDIO ============
@@ -448,6 +464,10 @@ function updateHUD(){
     infoEl.textContent='Niv.'+lvl;
     infoEl.className='';
   }
+  if(maxLvlRecord>0){
+    maxLvlHudEl.textContent=`🏅 MAX: NIV.${maxLvlRecord}`;
+    maxLvlHudEl.style.display='';
+  }
 }
 function popScore(){
   scoreEl.classList.remove('pop');
@@ -481,6 +501,7 @@ function startGame(){
   isSpraying=false; dying=false;
   recordCelebrated=false;
   sessionStartHs=hs;
+  sessionMaxLvl=1;
   keys={};
   lastTime=0;
   gameStartTime=performance.now();
@@ -489,6 +510,8 @@ function startGame(){
   targetsEl.innerHTML=''; partsEl.innerHTML='';
   beamEl.classList.remove('on');
   ffEl.classList.remove('spraying');
+  sprayBtnEl.classList.add('visible');
+  sprayBtnEl.classList.remove('on');
   gameEl.style.transform='';
   menuEl.classList.add('hidden');
   overEl.classList.add('hidden');
@@ -505,15 +528,23 @@ function endGame(){
   isSpraying=false;
   beamEl.classList.remove('on');
   ffEl.classList.remove('spraying');
+  sprayBtnEl.classList.remove('visible');
+  sprayBtnEl.classList.remove('on');
   gameEl.style.transform='';
   const elapsedSec=(performance.now()-gameStartTime)/1000;
   const beaten=hs>sessionStartHs;
   if(beaten) localStorage.setItem('pompier_best', String(hs));
+  if(sessionMaxLvl>maxLvlRecord){
+    maxLvlRecord=sessionMaxLvl;
+    localStorage.setItem('pompier_maxlvl', String(maxLvlRecord));
+  }
   $('overScore').textContent=score;
   $('overBest').textContent=hs;
+  $('overMaxLvl').textContent=maxLvlRecord;
   $('overTime').textContent=fmtTime(elapsedSec);
   $('overRec').style.display=beaten?'block':'none';
   $('menuHs').textContent=hs>0?`🏆 Meilleur score : ${hs}`:'';
+  updateHUD();
   overEl.classList.remove('hidden');
 }
 function witchHit(w){
@@ -620,6 +651,15 @@ function loop(now){
   const newLvl=Math.max(timeLvl, scoreLvl);
   if(newLvl!==lvl){
     lvl=newLvl;
+    if(lvl>sessionMaxLvl) sessionMaxLvl=lvl;
+    if(lvl>maxLvlRecord){
+      maxLvlRecord=lvl;
+      // Flash the max level indicator
+      maxLvlHudEl.classList.remove('beat');
+      void maxLvlHudEl.offsetWidth;
+      maxLvlHudEl.classList.add('beat');
+      setTimeout(()=>maxLvlHudEl.classList.remove('beat'), 400);
+    }
     if(combo<2) updateHUD();
   }
 
@@ -758,36 +798,46 @@ function relX(clientX){
   const r=gameEl.getBoundingClientRect();
   return (clientX-r.left)*(GAME_W/r.width);
 }
-let activePointerId=null;
+
+// ---- Movement: drag anywhere on game (except spray button) ----
+let movePtId=null;
 gameEl.addEventListener('pointerdown', e=>{
   if(scene!=='play') return;
-  if(e.target.closest('button')) return;
+  if(e.target.closest('#sprayBtn')||e.target.closest('button')) return;
   e.preventDefault();
-  activePointerId=e.pointerId;
+  movePtId=e.pointerId;
   try{ gameEl.setPointerCapture(e.pointerId); }catch(_){}
-  const x=relX(e.clientX);
-  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
-  isSpraying=true;
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, relX(e.clientX)-FF_W/2));
 });
 gameEl.addEventListener('pointermove', e=>{
-  if(scene!=='play') return;
-  if(activePointerId!==null && e.pointerId!==activePointerId) return;
-  if(!isSpraying && e.pointerType!=='mouse') return;
+  if(scene!=='play' || e.pointerId!==movePtId) return;
   e.preventDefault();
-  const x=relX(e.clientX);
-  ffX=Math.max(0,Math.min(GAME_W-FF_W, x-FF_W/2));
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, relX(e.clientX)-FF_W/2));
 });
-function endPointer(e){
-  if(activePointerId!==null && e && e.pointerId!==activePointerId) return;
-  activePointerId=null;
-  isSpraying=false;
-}
-gameEl.addEventListener('pointerup', endPointer);
-gameEl.addEventListener('pointercancel', endPointer);
-gameEl.addEventListener('pointerleave', e=>{ if(e.pointerType==='mouse') isSpraying=false; });
-window.addEventListener('blur', ()=>{ activePointerId=null; isSpraying=false; keys={}; });
+gameEl.addEventListener('pointerup', e=>{ if(e.pointerId===movePtId) movePtId=null; });
+gameEl.addEventListener('pointercancel', e=>{ if(e.pointerId===movePtId) movePtId=null; });
 
-// Play buttons — both click and touchstart for instant mobile response
+// ---- Spray: dedicated button (or Space / ArrowUp on keyboard) ----
+sprayBtnEl.addEventListener('pointerdown', e=>{
+  if(scene!=='play') return;
+  e.preventDefault();
+  e.stopPropagation();
+  sprayBtnEl.classList.add('on');
+  try{ sprayBtnEl.setPointerCapture(e.pointerId); }catch(_){}
+  isSpraying=true;
+});
+sprayBtnEl.addEventListener('pointerup', e=>{
+  isSpraying=false;
+  sprayBtnEl.classList.remove('on');
+});
+sprayBtnEl.addEventListener('pointercancel', e=>{
+  isSpraying=false;
+  sprayBtnEl.classList.remove('on');
+});
+
+window.addEventListener('blur', ()=>{ movePtId=null; isSpraying=false; keys={}; sprayBtnEl.classList.remove('on'); });
+
+// Play buttons — click + touchstart for instant mobile response
 function bindPlay(btn){
   btn.addEventListener('click', e=>{ e.preventDefault(); startGame(); });
   btn.addEventListener('touchstart', e=>{ e.preventDefault(); startGame(); },{passive:false});
@@ -810,6 +860,7 @@ document.addEventListener('gesturestart', e=>e.preventDefault());
 document.addEventListener('dblclick', e=>e.preventDefault());
 $('menuHs').textContent=hs>0?`🏆 Meilleur score : ${hs}`:'';
 bestValEl.textContent=hs;
+if(maxLvlRecord>0){ maxLvlHudEl.textContent=`🏅 MAX: NIV.${maxLvlRecord}`; maxLvlHudEl.style.display=''; }
 ffEl.style.left=ffX+'px';
 </script>
 </body>
