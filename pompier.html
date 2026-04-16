@@ -145,14 +145,14 @@ h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
   <div id="parts"></div>
   <div id="beam"></div>
   <div id="ff"></div>
-  <button id="sprayBtn" aria-label="Déplacer">↔</button>
+  <button id="sprayBtn" aria-label="Lancer l'eau">💧</button>
   <div id="combo"></div>
   <div id="newrec">NOUVEAU RECORD !</div>
 
   <div id="menu" class="overlay">
     <div class="truck">🚒</div>
     <h1>LES POMPIERS<span class="sub">sont là !</span></h1>
-    <div class="tip">🔥 Éteins les baigneuses enflammées !<br>💧 <span class="water">Appuie sur l'écran</span> pour lancer l'eau<br>↔️ <span class="water">Glisse le bouton ↔</span> pour déplacer<br>⚠️ <span class="danger">Relâche devant la sorcière !</span></div>
+    <div class="tip">🔥 Éteins les baigneuses enflammées !<br>↔️ <span class="water">Glisse</span> pour déplacer le pompier<br>💧 <span class="water">Maintiens</span> le bouton pour l'eau<br>⚠️ <span class="danger">Relâche devant la sorcière !</span></div>
     <button id="playBtn" class="btn">JOUER</button>
     <div id="menuHs" class="hs"></div>
   </div>
@@ -799,42 +799,37 @@ function relX(clientX){
   return (clientX-r.left)*(GAME_W/r.width);
 }
 
-// ---- SPRAY: appuyer n'importe où sur le jeu ----
-let sprayPtId=null;
+// ---- DÉPLACEMENT: glisser n'importe où sur le jeu ----
+let movePtId=null;
 gameEl.addEventListener('pointerdown', e=>{
   if(scene!=='play') return;
   if(e.target.closest('#sprayBtn')||e.target.closest('button')) return;
   e.preventDefault();
-  sprayPtId=e.pointerId;
+  movePtId=e.pointerId;
   try{ gameEl.setPointerCapture(e.pointerId); }catch(_){}
-  isSpraying=true;
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, relX(e.clientX)-FF_W/2));
 });
-gameEl.addEventListener('pointerup', e=>{ if(e.pointerId===sprayPtId){ sprayPtId=null; isSpraying=false; } });
-gameEl.addEventListener('pointercancel', e=>{ if(e.pointerId===sprayPtId){ sprayPtId=null; isSpraying=false; } });
+gameEl.addEventListener('pointermove', e=>{
+  if(scene!=='play'||e.pointerId!==movePtId) return;
+  e.preventDefault();
+  ffX=Math.max(0,Math.min(GAME_W-FF_W, relX(e.clientX)-FF_W/2));
+});
+gameEl.addEventListener('pointerup', e=>{ if(e.pointerId===movePtId) movePtId=null; });
+gameEl.addEventListener('pointercancel', e=>{ if(e.pointerId===movePtId) movePtId=null; });
 
-// ---- DÉPLACEMENT: glisser le bouton ↔ (joystick relatif) ----
-let movePtId=null, movePtStartX=0, movePtStartFfX=0;
+// ---- SPRAY: bouton 💧 (maintenir = eau) ----
 sprayBtnEl.addEventListener('pointerdown', e=>{
   if(scene!=='play') return;
   e.preventDefault();
   e.stopPropagation();
-  movePtId=e.pointerId;
-  movePtStartX=e.clientX;
-  movePtStartFfX=ffX;
   sprayBtnEl.classList.add('on');
   try{ sprayBtnEl.setPointerCapture(e.pointerId); }catch(_){}
+  isSpraying=true;
 });
-sprayBtnEl.addEventListener('pointermove', e=>{
-  if(e.pointerId!==movePtId) return;
-  e.preventDefault();
-  const r=gameEl.getBoundingClientRect();
-  const scale=GAME_W/r.width;
-  ffX=Math.max(0,Math.min(GAME_W-FF_W, movePtStartFfX+(e.clientX-movePtStartX)*scale));
-});
-sprayBtnEl.addEventListener('pointerup', e=>{ if(e.pointerId===movePtId){ movePtId=null; sprayBtnEl.classList.remove('on'); } });
-sprayBtnEl.addEventListener('pointercancel', e=>{ if(e.pointerId===movePtId){ movePtId=null; sprayBtnEl.classList.remove('on'); } });
+sprayBtnEl.addEventListener('pointerup', ()=>{ isSpraying=false; sprayBtnEl.classList.remove('on'); });
+sprayBtnEl.addEventListener('pointercancel', ()=>{ isSpraying=false; sprayBtnEl.classList.remove('on'); });
 
-window.addEventListener('blur', ()=>{ sprayPtId=null; movePtId=null; isSpraying=false; keys={}; sprayBtnEl.classList.remove('on'); });
+window.addEventListener('blur', ()=>{ movePtId=null; isSpraying=false; keys={}; sprayBtnEl.classList.remove('on'); });
 
 // Play buttons — click + touchstart for instant mobile response
 function bindPlay(btn){
