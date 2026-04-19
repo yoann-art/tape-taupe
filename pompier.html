@@ -324,7 +324,7 @@ let ffX=GAME_W/2-FF_W/2;
 let isSpraying=false;
 let targets=[], parts=[];
 let nextId=0;
-let lastSpawn=0, lastTime=0, gameStartTime=0;
+let lastSpawn=0, lastWitchSpawn=0, lastTime=0, gameStartTime=0;
 let invincibleUntil=0;
 let keys={};
 let hs=parseInt(localStorage.getItem('pompier_best')||'0');
@@ -419,38 +419,38 @@ function fitScale(){
 }
 
 // ============ SPAWNING ============
+// Spawn baigneuse ou cœur (jamais de sorcière ici)
 function spawnTarget(){
-  const witchChance=Math.min(.35, .07+lvl*.016);
-  let isWitch=Math.random()<witchChance;
-  let isHeart=false;
-  let lane;
-  if(isWitch){
-    // La sorcière ne spawn que dans une lane sans aucune cible active
-    const freeLanes=LANES.filter(l=>!targets.some(t=>Math.abs(t.y-l.y)<40));
-    if(freeLanes.length>0){ lane=pick(freeLanes); }
-    else{ isWitch=false; lane=pick(LANES); } // lane occupée → baigneuse à la place
-  } else {
-    lane=pick(LANES);
-    if(Math.random()<0.04) isHeart=true; // 4% de chance d'être un cœur enflammé
-  }
+  const isHeart=Math.random()<0.08; // 8% de chance d'être un cœur enflammé
+  const lane=pick(LANES);
   const baseSpeed=1.1+lvl*.09;
-  const speed=(baseSpeed+rand(-.15,.3))*lane.dir*(isWitch?1.05:1);
-  const w=isWitch?WITCH_W:isHeart?HEART_W:GIRL_W;
-  const h=isWitch?WITCH_H:isHeart?HEART_H:GIRL_H;
+  const speed=(baseSpeed+rand(-.15,.3))*lane.dir;
+  const w=isHeart?HEART_W:GIRL_W;
+  const h=isHeart?HEART_H:GIRL_H;
   const hp=isHeart?HEART_HP:32;
   const startX=lane.dir>0 ? -w-10 : GAME_W+10;
-  const svg=isWitch?WITCH_SVG:isHeart?HEART_SVG:girlSvg(pick(HAIRS),pick(BIKINIS),pick(SKINS));
+  const svg=isHeart?HEART_SVG:girlSvg(pick(HAIRS),pick(BIKINIS),pick(SKINS));
   targets.push({
     id:nextId++,
-    type:isWitch?'witch':isHeart?'heart':'girl',
-    svg,
-    x:startX,
-    y:lane.y+rand(-4,4),
-    w, h,
-    dx:speed,
-    hp, maxHp:hp,
-    shakeUntil:0
+    type:isHeart?'heart':'girl',
+    svg, x:startX, y:lane.y+rand(-4,4), w, h,
+    dx:speed, hp, maxHp:hp, shakeUntil:0
   });
+}
+// Spawn sorcière sur timer indépendant — jamais dans la même lane qu'une baigneuse
+function trySpawnWitch(){
+  const freeLanes=LANES.filter(l=>!targets.some(t=>Math.abs(t.y-l.y)<40));
+  if(freeLanes.length===0) return false; // toutes lanes occupées, réessayer plus tard
+  const lane=pick(freeLanes);
+  const baseSpeed=1.1+lvl*.09;
+  const speed=(baseSpeed+rand(-.15,.3))*lane.dir*1.05;
+  targets.push({
+    id:nextId++, type:'witch', svg:WITCH_SVG,
+    x:lane.dir>0?-WITCH_W-10:GAME_W+10,
+    y:lane.y+rand(-4,4), w:WITCH_W, h:WITCH_H,
+    dx:speed, hp:99, maxHp:99, shakeUntil:0
+  });
+  return true;
 }
 
 // ============ PARTICLES & POPUPS ============
@@ -544,6 +544,7 @@ function startGame(){
   lastTime=0;
   gameStartTime=performance.now();
   lastSpawn=gameStartTime;
+  lastWitchSpawn=gameStartTime;
   invincibleUntil=0;
   shieldHudEl.classList.remove('on');
   ffEl.classList.remove('shield');
@@ -742,13 +743,21 @@ function loop(now){
     }
     targets=kept;
 
-    // Spawn with time-scaled interval
+    // Spawn baigneuses/cœurs
     const spawnInt=Math.max(500, SPAWN_INIT - lvl*65);
     if(now-lastSpawn>spawnInt){
       spawnTarget();
       lastSpawn=now;
       // Extra spawn chance at high levels
       if(lvl>=6 && Math.random()<.15) spawnTarget();
+    }
+    // Spawn sorcière sur timer indépendant
+    // niv1→8s  niv5→6s  niv10→4s  niv20→2.5s  niv∞→2s
+    const witchInt=Math.max(2000, 8000-lvl*250);
+    if(now-lastWitchSpawn>witchInt){
+      const spawned=trySpawnWitch();
+      // Si lane occupée, retenter dans 2s plutôt que d'attendre le timer complet
+      lastWitchSpawn=spawned ? now : now-witchInt+2000;
     }
   }
 
