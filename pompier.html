@@ -325,6 +325,7 @@ let isSpraying=false;
 let targets=[], parts=[];
 let nextId=0;
 let lastSpawn=0, lastTime=0, gameStartTime=0;
+let lastWitchAt=0;
 let invincibleUntil=0;
 let keys={};
 let hs=parseInt(localStorage.getItem('pompier_best')||'0');
@@ -419,25 +420,37 @@ function fitScale(){
 }
 
 // ============ SPAWNING ============
-// 20% sorcière / 5% cœur / 75% baigneuse
-// La sorcière ne spawn que dans une lane libre (jamais avec une baigneuse)
-function spawnTarget(){
-  const roll=Math.random();
-  const baseSpeed=1.1+lvl*.09;
+// Ratios : 15% sorcière / 5% cœur / 80% baigneuse
+// Vitesse asymptotique : bornée à 3.5 pour jouabilité infinie
+// niv1→1.19  niv10→1.79  niv20→2.17  niv50→2.70  niv100→3.02  niv∞→3.5
+function getBaseSpeed(){ return 1.1 + 2.4*(1 - 1/(1+lvl*0.04)); }
+// Filet de sécurité : force une sorcière si ça fait >6s sans
+const WITCH_MAX_WAIT=6000;
 
-  if(roll<0.20){
-    // Sorcière : cherche une lane sans aucune cible
+function spawnTarget(){
+  const now=performance.now();
+  const baseSpeed=getBaseSpeed();
+  const roll=Math.random();
+  const forceWitch = lastWitchAt>0 && (now-lastWitchAt)>WITCH_MAX_WAIT;
+
+  // Sorcière : 15% + force si trop longue attente
+  if(forceWitch || roll<0.15){
     const freeLanes=LANES.filter(l=>!targets.some(t=>Math.abs(t.y-l.y)<40));
-    if(freeLanes.length===0) return; // lane occupée → skip, réessaie au prochain cycle
-    const lane=pick(freeLanes);
-    const speed=(baseSpeed+rand(-.15,.3))*lane.dir*1.05;
-    targets.push({ id:nextId++, type:'witch', svg:WITCH_SVG,
-      x:lane.dir>0?-WITCH_W-10:GAME_W+10, y:lane.y+rand(-4,4),
-      w:WITCH_W, h:WITCH_H, dx:speed, hp:99, maxHp:99, shakeUntil:0 });
-    return;
+    let lane=null;
+    if(freeLanes.length>0) lane=pick(freeLanes);
+    else if(forceWitch) lane=pick(LANES); // urgence : accepte lane occupée
+    if(lane){
+      const speed=(baseSpeed+rand(-.15,.3))*lane.dir*1.05;
+      targets.push({ id:nextId++, type:'witch', svg:WITCH_SVG,
+        x:lane.dir>0?-WITCH_W-10:GAME_W+10, y:lane.y+rand(-4,4),
+        w:WITCH_W, h:WITCH_H, dx:speed, hp:99, maxHp:99, shakeUntil:0 });
+      lastWitchAt=now;
+    }
+    return; // slot sorcière consommé (spawné ou reporté)
   }
 
-  const isHeart=roll<0.25; // 0.20–0.25 = 5% cœur
+  // Cœur (5%) ou baigneuse (80%)
+  const isHeart=roll<0.20; // 0.15–0.20 = 5% cœur
   const lane=pick(LANES);
   const speed=(baseSpeed+rand(-.15,.3))*lane.dir;
   const w=isHeart?HEART_W:GIRL_W, h=isHeart?HEART_H:GIRL_H, hp=isHeart?HEART_HP:32;
@@ -538,6 +551,7 @@ function startGame(){
   lastTime=0;
   gameStartTime=performance.now();
   lastSpawn=gameStartTime;
+  lastWitchAt=0;
   invincibleUntil=0;
   shieldHudEl.classList.remove('on');
   ffEl.classList.remove('shield');
@@ -736,13 +750,15 @@ function loop(now){
     }
     targets=kept;
 
-    // Spawn (20% sorcière / 5% cœur / 75% baigneuse)
-    const spawnInt=Math.max(500, SPAWN_INIT - lvl*65);
+    // Spawn (15% sorcière / 5% cœur / 80% baigneuse)
+    // Intervalle asymptotique — jamais en-dessous de 320ms, jouable à l'infini
+    // niv1→1411  niv10→967  niv20→762  niv50→540  niv100→433  niv∞→320
+    const spawnInt=320+Math.round(1180/(1+lvl*0.08));
     if(now-lastSpawn>spawnInt){
       spawnTarget();
       lastSpawn=now;
-      // Extra spawn chance at high levels
-      if(lvl>=6 && Math.random()<.15) spawnTarget();
+      // Extra spawn progressif à partir du niveau 6, plafonné pour garder de l'air
+      if(lvl>=6 && Math.random()<Math.min(0.20, (lvl-5)*0.015)) spawnTarget();
     }
   }
 
