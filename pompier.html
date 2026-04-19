@@ -461,7 +461,7 @@ function trySpawnWitch(){
     return true;
   });
   if(!ok.length) return false;
-  targets.push(buildTarget(pick(ok), true));
+  targets.push(buildTarget(pick(ok), 'witch'));
   return true;
 }
 
