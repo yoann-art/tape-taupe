@@ -77,17 +77,6 @@ body{display:flex;align-items:center;justify-content:center;background:#05050a;f
 .target .warn{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:18px;animation:warnBlink .3s infinite;z-index:4;line-height:1;filter:drop-shadow(0 0 6px #a046dc)}
 @keyframes warnBlink{0%,100%{opacity:1;transform:translateX(-50%) scale(1)}50%{opacity:.4;transform:translateX(-50%) scale(.85)}}
 
-/* ❤️‍🔥 Cœur enflammé */
-.target.heart{width:36px;height:50px}
-.target.heart .glow{left:-16px;top:-10px;width:68px;height:70px;box-shadow:0 0 28px 12px rgba(255,215,0,.9);background:radial-gradient(ellipse,rgba(255,200,0,.5),transparent 65%);animation:heartPulse .45s ease-in-out infinite alternate}
-@keyframes heartPulse{from{transform:scale(.9);opacity:.7}to{transform:scale(1.2);opacity:1}}
-
-/* 🛡️ Invincibilité */
-#shieldHud{position:absolute;top:40px;left:50%;transform:translateX(-50%);color:#ffd700;font-size:14px;font-weight:900;text-shadow:0 0 14px rgba(255,215,0,1),0 0 28px rgba(255,165,0,.7);z-index:22;pointer-events:none;white-space:nowrap;display:none;letter-spacing:1px}
-#shieldHud.on{display:block;animation:shieldPulse .5s ease-in-out infinite alternate}
-@keyframes shieldPulse{from{opacity:.7;transform:translateX(-50%) scale(.97)}to{opacity:1;transform:translateX(-50%) scale(1.04)}}
-#ff.shield svg{filter:drop-shadow(0 0 12px #ffd700) drop-shadow(0 0 6px #ff9500)}
-
 .target .hpbar{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:34px;height:4px;background:rgba(0,0,0,.6);border-radius:2px;overflow:hidden;z-index:5}
 .target .hpfill{height:100%;border-radius:2px;transition:width .08s,background .15s;width:100%;background:#ff6b35}
 
@@ -156,7 +145,6 @@ h1 .sub{display:block;font-size:17px;color:#ffd166;margin-top:4px}
   <div id="parts"></div>
   <div id="beam"></div>
   <div id="ff"></div>
-  <div id="shieldHud">🛡️ INVINCIBLE <span id="shieldTime">10</span>s</div>
   <div id="combo"></div>
   <div id="newrec">NOUVEAU RECORD !</div>
 
@@ -257,19 +245,6 @@ const WITCH_SVG = `<svg viewBox="0 0 44 82" xmlns="http://www.w3.org/2000/svg">
 <rect x="20" y="10" width="4" height="2" fill="#ffd700"/>
 </svg>`;
 
-const HEART_SVG=`<svg viewBox="0 0 36 50" xmlns="http://www.w3.org/2000/svg">
-<path d="M13 16 Q10 8 13 5 Q11 1 15 3 Q16 7 14 13" fill="#ff8c00"/>
-<path d="M18 14 Q15 4 18 1 Q21 4 18 14" fill="#ffa500"/>
-<path d="M23 16 Q26 8 23 5 Q25 1 21 3 Q20 7 22 13" fill="#ff8c00"/>
-<path d="M11 15 Q9 9 11 6 Q9 3 13 4" fill="#ffd700" opacity=".7"/>
-<path d="M25 15 Q27 9 25 6 Q27 3 23 4" fill="#ffd700" opacity=".7"/>
-<path d="M18 47 Q2 34 2 20 Q2 10 9 9 Q13 8 18 15 Q23 8 27 9 Q34 10 34 20 Q34 34 18 47Z" fill="#e01055"/>
-<path d="M18 47 Q2 34 2 20 Q2 10 9 9 Q13 8 18 15Z" fill="#a0003a"/>
-<ellipse cx="11" cy="18" rx="3" ry="4" fill="rgba(255,255,255,.42)"/>
-<path d="M18 47 Q2 34 2 20 Q2 10 9 9 Q13 8 18 15 Q23 8 27 9 Q34 10 34 20 Q34 34 18 47Z" fill="none" stroke="#ffd700" stroke-width="2"/>
-<path d="M28 7 L29 9.5 L31.5 9.5 L29.5 11 L30.3 13.5 L28 12 L25.7 13.5 L26.5 11 L24.5 9.5 L27 9.5Z" fill="#ffd700"/>
-</svg>`;
-
 function girlSvg(hair, bikini, skin){
   return `<svg viewBox="0 0 40 72" xmlns="http://www.w3.org/2000/svg">
 <path d="M9 11 Q9 4 20 2 Q31 4 31 11 L32 44 Q32 50 28 50 Q28 30 26 22 L14 22 Q12 30 12 44 Q8 50 8 44 Z" fill="${hair}"/>
@@ -310,9 +285,8 @@ const BEAM_W=10;
 const GIRL_W=40, GIRL_H=72;
 const WITCH_W=44, WITCH_H=82;
 const FF_SPEED=6.5;
-const LANES_2=[{y:28,dir:1},{y:138,dir:-1}];
-const LANES_3=[{y:28,dir:1},{y:138,dir:-1},{y:252,dir:1}];
-const HEART_W=36, HEART_H=50, HEART_HP=90;
+const SPAWN_INIT=1500;
+const LANES=[{y:28,dir:1},{y:138,dir:-1}];
 const HAIRS=["#f4c842","#d49a1a","#8b4513","#2c1810","#a0332a","#e67e22","#5a2a7a","#2a2a2a"];
 const BIKINIS=["#ff1e56","#e91e63","#00bcd4","#4caf50","#ffc107","#ff5722","#9c27b0","#ffffff","#000000","#f50057","#03a9f4"];
 const SKINS=["#f4c8a0","#e8b888","#d4a574","#c89060","#a67852"];
@@ -324,8 +298,7 @@ let ffX=GAME_W/2-FF_W/2;
 let isSpraying=false;
 let targets=[], parts=[];
 let nextId=0;
-let lastSpawn=0, lastWitchSpawn=0, lastTime=0, gameStartTime=0;
-let invincibleUntil=0;
+let lastSpawn=0, lastTime=0, gameStartTime=0;
 let keys={};
 let hs=parseInt(localStorage.getItem('pompier_best')||'0');
 let maxLvlRecord=parseInt(localStorage.getItem('pompier_maxlvl')||'0');
@@ -346,7 +319,6 @@ const targetsEl=$('targets'), partsEl=$('parts');
 const ffEl=$('ff'), beamEl=$('beam');
 const scoreEl=$('score'), bestValEl=$('bestVal'), infoEl=$('info');
 const maxLvlHudEl=$('maxLvlHud');
-const shieldHudEl=$('shieldHud'), shieldTimeEl=$('shieldTime');
 
 const menuEl=$('menu'), overEl=$('over'), comboEl=$('combo'), newrecEl=$('newrec');
 
@@ -418,51 +390,36 @@ function fitScale(){
   wrapEl.style.transform=`scale(${s})`;
 }
 
-// ============ SPAWNING & DIFFICULTÉ INFINIE ============
-// Lanes actives : 2 au départ, 3ème débloquée au niveau 10 (comme Tetris)
-function getActiveLanes(){ return lvl>=10 ? LANES_3 : LANES_2; }
-
-// Difficulté progressive façon Tetris — aucun plafond dur
-// Spawn interval : niv1→1650ms  niv5→1200ms  niv10→870ms  niv20→575ms  niv30→410ms  niv∞→250ms
-function getSpawnInt(){ return Math.max(250, Math.round(1700/(1+lvl*0.09))); }
-
-// Sorcière : niv1→9s  niv5→7.5s  niv10→6s  niv20→4s  niv30→2.5s  niv∞→1.8s
-function getWitchInt(){ return Math.max(1800, 9000-lvl*230); }
-
-// Vitesse douce au départ, infinie ensuite
-function getBaseSpeed(){ return 0.8+0.13*lvl; }
-
-function buildTarget(lane, type){
-  const isWitch=type==='witch', isHeart=type==='heart';
-  const spd=(getBaseSpeed()+rand(-.15,.25))*lane.dir*(isWitch?1.1:1);
-  const w=isWitch?WITCH_W:isHeart?HEART_W:GIRL_W;
-  const h=isWitch?WITCH_H:isHeart?HEART_H:GIRL_H;
-  const hp=isHeart?HEART_HP:32;
-  const svg=isWitch?WITCH_SVG:isHeart?HEART_SVG:girlSvg(pick(HAIRS),pick(BIKINIS),pick(SKINS));
-  return { id:nextId++, type, svg, x:lane.dir>0?-w-10:GAME_W+10,
-           y:lane.y+rand(-4,4), w, h, dx:spd, hp, maxHp:hp, shakeUntil:0 };
-}
-function spawnGirl(){
-  // Sorcière dans une lane ? → baigneuse évite cette lane
-  const all=getActiveLanes();
-  const safe=all.filter(l=>!targets.some(t=>t.type==='witch'&&Math.abs(t.y-l.y)<55));
-  const lane=pick(safe.length>0?safe:all);
-  // 2.5% de chance d'être un cœur enflammé
-  const type=Math.random()<0.025?'heart':'girl';
-  targets.push(buildTarget(lane, type));
-}
-function trySpawnWitch(){
-  const lanes=getActiveLanes();
-  // Sorcière = lane sans sorcière existante ET zone d'entrée dégagée
-  const ok=lanes.filter(l=>{
-    if(targets.some(t=>t.type==='witch'&&Math.abs(t.y-l.y)<55)) return false;
-    const ex=l.dir>0?0:GAME_W;
-    if(targets.some(t=>Math.abs(t.y-l.y)<55&&Math.abs((t.x+t.w/2)-ex)<120)) return false;
-    return true;
+// ============ SPAWNING ============
+function spawnTarget(){
+  const witchChance=Math.min(.35, .07+lvl*.016);
+  let isWitch=Math.random()<witchChance;
+  let lane;
+  if(isWitch){
+    // La sorcière ne spawn que dans une lane sans aucune cible active
+    const freeLanes=LANES.filter(l=>!targets.some(t=>Math.abs(t.y-l.y)<40));
+    if(freeLanes.length>0){ lane=pick(freeLanes); }
+    else{ isWitch=false; lane=pick(LANES); } // lane occupée → baigneuse à la place
+  } else {
+    lane=pick(LANES);
+  }
+  const baseSpeed=1.1+lvl*.09;
+  const speed=(baseSpeed+rand(-.15,.3))*lane.dir*(isWitch?1.05:1);
+  const w=isWitch?WITCH_W:GIRL_W;
+  const h=isWitch?WITCH_H:GIRL_H;
+  const startX=lane.dir>0 ? -w-10 : GAME_W+10;
+  const svg=isWitch ? WITCH_SVG : girlSvg(pick(HAIRS), pick(BIKINIS), pick(SKINS));
+  targets.push({
+    id:nextId++,
+    type:isWitch?'witch':'girl',
+    svg,
+    x:startX,
+    y:lane.y+rand(-4,4),
+    w, h,
+    dx:speed,
+    hp:32, maxHp:32,
+    shakeUntil:0
   });
-  if(!ok.length) return false;
-  targets.push(buildTarget(pick(ok), 'witch'));
-  return true;
 }
 
 // ============ PARTICLES & POPUPS ============
@@ -556,10 +513,6 @@ function startGame(){
   lastTime=0;
   gameStartTime=performance.now();
   lastSpawn=gameStartTime;
-  lastWitchSpawn=gameStartTime;
-  invincibleUntil=0;
-  shieldHudEl.classList.remove('on');
-  ffEl.classList.remove('shield');
   shakeUntil=0; shakeAmount=0;
   targetsEl.innerHTML=''; partsEl.innerHTML='';
   beamEl.classList.remove('on');
@@ -571,7 +524,7 @@ function startGame(){
   newrecEl.classList.remove('show');
   ffEl.style.left=ffX+'px';
   updateHUD();
-  spawnGirl();
+  spawnTarget();
   requestAnimationFrame(loop);
 }
 function endGame(){
@@ -599,16 +552,6 @@ function endGame(){
 }
 function witchHit(w){
   if(dying) return;
-  // Invincible → la sorcière est repoussée
-  if(invincibleUntil>performance.now()){
-    targets=targets.filter(t=>t!==w);
-    addParticles(w.x+w.w/2, w.y+w.h/2, 'witchHit', 22);
-    scorePopup(w.x+w.w/2, w.y,'✨ REPOUSSÉE !','#ffd700');
-    score+=30;
-    shake(6,250);
-    vibe([30,20,30]);
-    return;
-  }
   dying=true;
   isSpraying=false;
   beamEl.classList.remove('on');
@@ -649,8 +592,6 @@ function createTarget(t){
   el.className='target '+t.type;
   if(t.type==='girl'){
     el.innerHTML='<div class="glow"></div>'+t.svg+'<div class="fire f1">🔥</div><div class="fire f2">🔥</div><div class="fire f3">🔥</div><div class="fire f4">🔥</div><div class="hpbar"><div class="hpfill"></div></div>';
-  } else if(t.type==='heart'){
-    el.innerHTML='<div class="glow"></div>'+t.svg+'<div class="hpbar"><div class="hpfill"></div></div>';
   } else {
     el.innerHTML='<div class="glow"></div><div class="warn">⚠️</div>'+t.svg;
   }
@@ -661,19 +602,16 @@ function updateTarget(el,t){
   el.style.left=t.x+'px';
   el.style.top=t.y+'px';
   const shaking=t.shakeUntil>now;
-  if(shaking) el.classList.add('shaking'); else el.classList.remove('shaking');
-  if(t.type==='girl'||t.type==='heart'){
+  if(shaking) el.classList.add('shaking');
+  else el.classList.remove('shaking');
+  if(t.type==='girl'){
     const hpPct=t.hp/t.maxHp;
     const f=el.querySelector('.hpfill');
     f.style.width=(hpPct*100)+'%';
-    f.style.background=t.type==='heart'
-      ? (hpPct>.3?'#ffd700':'#fff')
-      : (hpPct>.3?'#ff6b35':'#4ecdc4');
-    if(t.type==='girl'){
-      const fires=el.querySelectorAll('.fire');
-      const op=String(.35+hpPct*.65);
-      for(const fire of fires) fire.style.opacity=op;
-    }
+    f.style.background=hpPct>.3?'#ff6b35':'#4ecdc4';
+    const fires=el.querySelectorAll('.fire');
+    const op=String(.35+hpPct*.65);
+    for(const fire of fires) fire.style.opacity=op;
   }
 }
 function createPart(p){
@@ -709,23 +647,22 @@ function loop(now){
     gameEl.style.transform='';
   }
 
-  // Level : temps + score, pas de plafond — progression douce au départ
+  // Time-based level ramping
   const elapsedSec=(now-gameStartTime)/1000;
-  const timeLvl=1+Math.floor(elapsedSec/28);      // +1 toutes les 28s
-  const scoreLvl=Math.floor(score/160)+1;          // +1 tous les 160 pts
+  const timeLvl=1+Math.floor(elapsedSec/25);
+  const scoreLvl=Math.floor(score/200)+1;
   const newLvl=Math.max(timeLvl, scoreLvl);
   if(newLvl!==lvl){
     lvl=newLvl;
     if(lvl>sessionMaxLvl) sessionMaxLvl=lvl;
     if(lvl>maxLvlRecord){
       maxLvlRecord=lvl;
+      // Flash the max level indicator
       maxLvlHudEl.classList.remove('beat');
       void maxLvlHudEl.offsetWidth;
       maxLvlHudEl.classList.add('beat');
       setTimeout(()=>maxLvlHudEl.classList.remove('beat'), 400);
     }
-    // Annonce 3ème lane
-    if(lvl===10) scorePopup(GAME_W/2, 260,'⚠️ 3ème LIGNE !','#c47bf0');
     if(combo<2) updateHUD();
   }
 
@@ -755,18 +692,13 @@ function loop(now){
     }
     targets=kept;
 
-    // ── Spawn baigneuses (timer principal) ──
-    if(now-lastSpawn>getSpawnInt()){
-      spawnGirl();
+    // Spawn with time-scaled interval
+    const spawnInt=Math.max(500, SPAWN_INIT - lvl*65);
+    if(now-lastSpawn>spawnInt){
+      spawnTarget();
       lastSpawn=now;
-      // Doublons progressifs — commencent plus tard
-      if(lvl>=9  && Math.random()<Math.min(.50,.05*(lvl-8)))  spawnGirl();
-      if(lvl>=18 && Math.random()<Math.min(.30,.04*(lvl-17))) spawnGirl();
-    }
-    // ── Spawn sorcière (timer INDÉPENDANT) ──
-    if(now-lastWitchSpawn>getWitchInt()){
-      if(trySpawnWitch()){ lastWitchSpawn=now; }
-      else { lastWitchSpawn=now-getWitchInt()+400; } // réessaie dans 400ms
+      // Extra spawn chance at high levels
+      if(lvl>=6 && Math.random()<.15) spawnTarget();
     }
   }
 
@@ -777,7 +709,7 @@ function loop(now){
     const beamCX=ffX+FF_W/2;
     let closest=null;
     for(const t of targets){
-      if((t.type==='girl'||t.type==='heart') && t.hp<=0) continue;
+      if(t.type==='girl' && t.hp<=0) continue;
       if(beamCX>=t.x && beamCX<=t.x+t.w){
         if(!closest || t.y+t.h>closest.y+closest.h) closest=t;
       }
@@ -801,43 +733,22 @@ function loop(now){
     ffEl.classList.remove('spraying');
   }
 
-  // Invincibilité : mise à jour HUD + glow pompier
-  if(invincibleUntil>now){
-    const rem=Math.ceil((invincibleUntil-now)/1000);
-    shieldTimeEl.textContent=rem;
-    shieldHudEl.classList.add('on');
-    ffEl.classList.add('shield');
-  } else {
-    shieldHudEl.classList.remove('on');
-    ffEl.classList.remove('shield');
-  }
-
-  // Cibles éteintes
+  // Extinguished girls
   if(!dying){
     const stillUp=[];
     let saved=0;
     for(const t of targets){
-      if((t.type==='girl'||t.type==='heart') && t.hp<=0){
+      if(t.type==='girl' && t.hp<=0){
         saved++;
+        addParticles(t.x+t.w/2, t.y+t.h/2, 'save');
         combo++;
-        const isHeart=t.type==='heart';
-        addParticles(t.x+t.w/2, t.y+t.h/2, isHeart?'save':'save', isHeart?28:16);
-        if(isHeart){
-          invincibleUntil=now+10000;
-          score+=50+10*Math.max(1,combo);
-          scorePopup(t.x+t.w/2, t.y, '🛡️ +50 INVINCIBLE !','#ffd700');
-          shake(10,500);
-          vibe([40,30,40,30,80]);
-          sRecord();
-        } else {
-          const pts=10*Math.max(1,combo);
-          score+=pts;
-          scorePopup(t.x+t.w/2, t.y+10, '+'+pts);
-          sSave(combo);
-          vibe(12);
-        }
+        const pts=10*Math.max(1,combo);
+        score+=pts;
+        scorePopup(t.x+t.w/2, t.y+10, '+'+pts);
         popScore();
         if(combo>=2) popCombo();
+        sSave(combo);
+        vibe(12);
         if(combo>=3 && combo%3===0) showCombo(combo);
       } else {
         stillUp.push(t);
