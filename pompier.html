@@ -780,7 +780,9 @@ function loop(now){
       if(closest.type==='witch'){
         witchHit(closest);
       } else {
-        closest.hp -= dt*1.265;
+        // Puissance lance : +5% tous les 10 niveaux
+        const beamPower = 1 + Math.floor(lvl/10)*0.05;
+        closest.hp -= dt*1.265*beamPower;
         closest.shakeUntil=now+140;
         if(Math.random()<.55) addParticles(beamCX-4, closest.y+closest.h*.4, 'splash', 1);
       }
