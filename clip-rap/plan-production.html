@@ -1,0 +1,731 @@
+<title>Chevalier vs Cyber-Idole</title>
+<style>
+  :root {
+    --ground: #EFF1F5;
+    --panel: #FFFFFF;
+    --panel-2: #F7F8FB;
+    --ink: #14161C;
+    --ink-2: #565D6E;
+    --ink-3: #838A99;
+    --line: #D8DCE5;
+    --line-soft: #E7EAF1;
+    --a: #1D4ED8;
+    --a-soft: #E3E9FD;
+    --b: #C4136F;
+    --b-soft: #FBE2EF;
+    --code-bg: #16181F;
+    --code-ink: #DFE3EC;
+    --code-dim: #7E869A;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0F1116;
+      --panel: #171A21;
+      --panel-2: #1C2029;
+      --ink: #E8EAF0;
+      --ink-2: #A0A7B6;
+      --ink-3: #79808F;
+      --line: #2A2F3A;
+      --line-soft: #232833;
+      --a: #7EA0FF;
+      --a-soft: #1B2440;
+      --b: #FF6CB0;
+      --b-soft: #3A1428;
+      --code-bg: #0A0C10;
+      --code-ink: #DFE3EC;
+      --code-dim: #6F7788;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0F1116;
+    --panel: #171A21;
+    --panel-2: #1C2029;
+    --ink: #E8EAF0;
+    --ink-2: #A0A7B6;
+    --ink-3: #79808F;
+    --line: #2A2F3A;
+    --line-soft: #232833;
+    --a: #7EA0FF;
+    --a-soft: #1B2440;
+    --b: #FF6CB0;
+    --b-soft: #3A1428;
+    --code-bg: #0A0C10;
+    --code-ink: #DFE3EC;
+    --code-dim: #6F7788;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 22px 96px;
+  }
+
+  /* ---------- header ---------- */
+  .masthead {
+    border-bottom: 1px solid var(--line);
+    padding: 56px 0 34px;
+    margin-bottom: 44px;
+  }
+  .eyebrow {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+    font-size: clamp(42px, 9vw, 76px);
+    text-transform: uppercase;
+    text-wrap: balance;
+    margin: 0;
+  }
+  h1 .vs {
+    display: block;
+    font-size: 0.34em;
+    letter-spacing: 0.3em;
+    font-weight: 700;
+    color: var(--ink-3);
+    padding: 0.35em 0;
+  }
+  h1 .na { color: var(--a); }
+  h1 .nb { color: var(--b); }
+  .lede {
+    color: var(--ink-2);
+    font-size: 19px;
+    max-width: 62ch;
+    margin: 26px 0 0;
+  }
+
+  .specs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .spec {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    color: var(--ink-2);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 6px 10px;
+  }
+  .spec b { color: var(--ink); font-weight: 700; }
+
+  /* ---------- phases ---------- */
+  .phase {
+    border-top: 1px solid var(--line);
+    padding-top: 30px;
+    margin-top: 54px;
+  }
+  .phase-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .num {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+  }
+  .tool {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 3px 9px;
+  }
+  .time {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--ink-3);
+    margin-left: auto;
+  }
+  h2 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: clamp(26px, 4.4vw, 34px);
+    line-height: 1.1;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+  h3 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 34px 0 12px;
+  }
+  p { margin: 0 0 16px; max-width: 68ch; }
+  .phase ul, .phase ol { max-width: 68ch; padding-left: 22px; margin: 0 0 16px; }
+  .phase li { margin-bottom: 9px; }
+  strong { color: var(--ink); }
+  em { color: var(--ink-2); }
+
+  /* ---------- panels ---------- */
+  .note {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--ink-3);
+    border-radius: 2px;
+    padding: 16px 18px;
+    margin: 22px 0;
+    font-size: 16px;
+  }
+  .note p { margin: 0; }
+  .note .label {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 7px;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    border-radius: 3px;
+    padding: 16px 18px;
+    margin: 14px 0 22px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  pre .c { color: var(--code-dim); }
+
+  /* ---------- character lanes ---------- */
+  .duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  @media (max-width: 620px) { .duo { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 18px 18px 20px;
+  }
+  .card h4 {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  .card p { font-size: 15.5px; margin: 0 0 10px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card.a { border-top: 3px solid var(--a); }
+  .card.a h4 { color: var(--a); }
+  .card.b { border-top: 3px solid var(--b); }
+  .card.b h4 { color: var(--b); }
+
+  .lyr {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 4px 18px 14px;
+    margin: 18px 0 24px;
+  }
+  .lyr .tag {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+    margin: 18px 0 6px;
+  }
+  .lyr .tag.a { color: var(--a); }
+  .lyr .tag.b { color: var(--b); }
+  .lyr .bars { margin: 0; font-size: 16px; line-height: 1.75; }
+
+  /* ---------- table ---------- */
+  .scroll { overflow-x: auto; margin: 18px 0 24px; border: 1px solid var(--line); border-radius: 3px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 560px;
+    background: var(--panel);
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    color: var(--ink-2);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.tc {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .who {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .who.a { color: var(--a); background: var(--a-soft); }
+  .who.b { color: var(--b); background: var(--b-soft); }
+  .who.x { color: var(--ink-2); background: var(--panel-2); border: 1px solid var(--line); }
+
+  /* ---------- checklists ---------- */
+  .check { list-style: none; padding: 0; margin: 16px 0 22px; max-width: 68ch; }
+  .check li {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+  .check li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.42em;
+    width: 13px;
+    height: 13px;
+    border: 1.5px solid var(--ink-3);
+    border-radius: 2px;
+  }
+
+  .final {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 26px 24px 28px;
+    margin-top: 56px;
+  }
+  .final h2 { margin-bottom: 12px; }
+  .final ol { padding-left: 20px; margin: 0; }
+  .final li { margin-bottom: 12px; }
+
+  a { color: var(--a); }
+  a:focus-visible, li:focus-visible { outline: 2px solid var(--a); outline-offset: 3px; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <p class="eyebrow">Dossier de production · Clip 9:16</p>
+    <h1><span class="na">Chevalier</span><span class="vs">contre</span><span class="nb">Cyber-Idole</span></h1>
+    <p class="lede">Un clip de rap-battle animé entre deux personnages qui n'ont rien à faire dans le même monde. Sept étapes, dans l'ordre, avec les prompts prêts à coller. Meta AI dessine et anime, Suno fait le son, CapCut monte.</p>
+    <div class="specs">
+      <span class="spec"><b>55 s</b> · format vertical 1080×1920</span>
+      <span class="spec"><b>140 BPM</b> · une seule instru</span>
+      <span class="spec"><b>~20 plans</b> · 2 à 3 s chacun</span>
+      <span class="spec"><b>6 à 8 h</b> de travail la 1<sup>re</sup> fois</span>
+    </div>
+  </header>
+
+  <div class="note">
+    <span class="label">La règle qui décide de tout</span>
+    <p>On fait le son <strong>avant</strong> l'image. Le morceau final impose le tempo, la durée, le nombre de plans et les points de coupe. Si tu génères des images avant d'avoir le mp3 définitif, tu jettes la moitié de ton travail. Ordre non négociable : texte → musique → personnages → animation → montage.</p>
+  </div>
+
+  <!-- ================= PHASE 00 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 00</span>
+      <span class="tool">Papier</span>
+      <span class="time">30 min</span>
+    </div>
+    <h2>Verrouiller le duo et le conflit</h2>
+    <p>Le clip est drôle à cause d'<strong>une seule chose</strong> : deux univers qui n'ont aucune raison de se croiser s'affrontent avec les armes de leur monde. Plus l'écart est large, plus ça marche. Le duo recommandé ci-dessous est choisi parce qu'il oppose quatre axes à la fois : l'époque, la matière, le vocabulaire et le flow.</p>
+
+    <div class="duo">
+      <div class="card a">
+        <h4>Le Chevalier</h4>
+        <p><strong>Univers :</strong> Moyen Âge, pierre, boue, fer rouillé.</p>
+        <p><strong>Voix :</strong> grave, rocailleuse, flow lent en <em>half-time</em>.</p>
+        <p><strong>Arme rhétorique :</strong> l'honneur, la durée, l'effort.</p>
+        <p><strong>Couleur :</strong> bleu acier, lumière froide, torches.</p>
+      </div>
+      <div class="card b">
+        <h4>La Cyber-Idole</h4>
+        <p><strong>Univers :</strong> néon, hologrammes, plastique, direct 24/7.</p>
+        <p><strong>Voix :</strong> aiguë, autotunée, flow rapide et saccadé.</p>
+        <p><strong>Arme rhétorique :</strong> les chiffres, la vitesse, l'audience.</p>
+        <p><strong>Couleur :</strong> magenta et cyan, lumière saturée.</p>
+      </div>
+    </div>
+
+    <p>Si ce duo ne te parle pas, garde la mécanique et change les deux rôles : <em>mamie tricoteuse contre robot livreur</em>, <em>pigeon de Paris contre astronaute</em>, <em>chef sushi contre viking</em>. Une seule contrainte : deux silhouettes <strong>reconnaissables en 0,5 seconde</strong>, même en petit sur un téléphone.</p>
+
+    <ul class="check">
+      <li>Nom, époque et univers de chaque personnage écrits en une ligne.</li>
+      <li>Le sujet de la battle en une phrase : « qui mérite le respect ? »</li>
+      <li>Qui a le dernier mot ? (Réponse recommandée : personne — les deux se font couper par un troisième élément, ça relance en commentaires.)</li>
+      <li>Aucun personnage sous copyright. Pas de Disney, pas de Pokémon, pas d'anime existant : démonétisation et retrait automatique.</li>
+    </ul>
+  </section>
+
+  <!-- ================= PHASE 01 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 01</span>
+      <span class="tool">Papier</span>
+      <span class="time">45 min</span>
+    </div>
+    <h2>Écrire le texte avant de toucher à Suno</h2>
+    <p>Suno écrit mal les punchlines et t'imposera une structure molle. Tu arrives avec tes paroles déjà découpées, tu ne lui laisses que la musique et les voix.</p>
+
+    <h3>Structure imposée — 55 secondes</h3>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Temps</th><th>Bloc</th><th>Qui</th><th>Rôle</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="tc">0:00–0:05</td><td>Accroche</td><td><span class="who x">Les deux</span></td><td>Le titre du duel, crié. Le spectateur comprend le concept avant 3 s.</td></tr>
+          <tr><td class="tc">0:05–0:19</td><td>Couplet 1 · 8 mesures</td><td><span class="who a">Chevalier</span></td><td>Il attaque en premier, il a l'ancienneté.</td></tr>
+          <tr><td class="tc">0:19–0:24</td><td>Refrain</td><td><span class="who x">Les deux</span></td><td>4 lignes maximum, répétables, c'est ce qui reste en tête.</td></tr>
+          <tr><td class="tc">0:24–0:38</td><td>Couplet 2 · 8 mesures</td><td><span class="who b">Cyber-Idole</span></td><td>Réponse ligne par ligne aux attaques du couplet 1.</td></tr>
+          <tr><td class="tc">0:38–0:45</td><td>Refrain</td><td><span class="who x">Les deux</span></td><td>Identique, plus fort, avec les deux voix superposées.</td></tr>
+          <tr><td class="tc">0:45–0:55</td><td>Punch finale</td><td><span class="who x">Les deux</span></td><td>Une ligne chacun en alternance rapide, puis coupure nette.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Les trois règles d'écriture</h3>
+    <ul>
+      <li><strong>Une punchline = une comparaison entre les deux mondes.</strong> Jamais une insulte générique. « Ton château est en ruine, mon univers se reconstruit chaque nuit » fonctionne ; « t'es nul » ne fonctionne pas.</li>
+      <li><strong>Vocabulaire strictement séparé.</strong> Le Chevalier ne dit jamais un mot d'après 1500. L'Idole ne parle qu'en anglicismes, chiffres et formats. C'est ça qui fait rire, pas le contenu.</li>
+      <li><strong>Une idée par mesure.</strong> À 140 BPM tu as environ 1,7 s par mesure : 8 à 12 syllabes utiles, pas plus, sinon Suno bâcle la diction.</li>
+    </ul>
+
+    <h3>Texte de base — à modifier librement</h3>
+    <div class="lyr">
+      <p class="tag">[Intro]</p>
+      <p class="bars">Deux mondes, un seul micro.<br>Chevalier. Cyber-Idole. Que le meilleur reste debout.</p>
+
+      <p class="tag a">[Couplet 1 — Chevalier]</p>
+      <p class="bars">J'ai traversé la peste, la boue et trois croisades,<br>
+      ton pire ennemi à toi c'est la batterie à vingt.<br>
+      Mon heaume a plus d'honneur que ton fil n'a de vues,<br>
+      je parle comme je pense, tu répètes ce qu'on t'écrit.<br>
+      Ton royaume tient sur un serveur, le mien tient sur la pierre,<br>
+      j'ai juré fidélité, t'as signé un contrat.<br>
+      Quand la nuit tombe, je veille — quand la nuit tombe, tu postes.<br>
+      Range ta lumière ronde : ici on se bat au fer.</p>
+
+      <p class="tag">[Refrain]</p>
+      <p class="bars">Deux mondes, un seul micro,<br>
+      mille ans d'écart, zéro respect.<br>
+      Deux mondes, un seul micro,<br>
+      que le meilleur reste debout.</p>
+
+      <p class="tag b">[Couplet 2 — Cyber-Idole]</p>
+      <p class="bars">Mon single fait plus d'écoutes que ton siècle a d'habitants,<br>
+      tu portes cent kilos de ferraille, moi je porte la lumière.<br>
+      Ton château tombe en ruine, mon décor renaît chaque nuit,<br>
+      t'as mis trente ans à savoir lire, j'apprends douze langues en direct.<br>
+      Ton épée coupe le vent, ma voix coupe le silence,<br>
+      t'attends encore un dragon — j'ai déjà brûlé la scène.<br>
+      Retourne à ton Moyen Âge, garde ta boue et tes prières,<br>
+      ici c'est néon, autotune, et je règne sans fin.</p>
+
+      <p class="tag">[Final]</p>
+      <p class="bars">— Tu n'as pas d'âme.<br>— T'as pas de public.<br>— …<br>Deux mondes qui s'ignorent, un seul beat qui les tient.</p>
+    </div>
+  </section>
+
+  <!-- ================= PHASE 02 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 02</span>
+      <span class="tool">Suno</span>
+      <span class="time">1 h</span>
+    </div>
+    <h2>Fabriquer le morceau et les deux voix</h2>
+    <p>Une seule instru à <strong>140 BPM</strong>. Le Chevalier rappe en <em>half-time</em> (il pose une syllabe sur deux, ça sonne lourd et lent), l'Idole rappe plein tempo. Tu obtiens deux flows radicalement différents sans jamais changer de beat — c'est comme ça qu'on fait un vrai morceau à deux personnages.</p>
+
+    <h3>Réglages Suno</h3>
+    <ul>
+      <li>Mode <strong>Custom / Personnalisé</strong>. Tu colles tes paroles telles quelles, avec les balises entre crochets.</li>
+      <li>Champ <em>Style of music</em> : le prompt ci-dessous. Ne mets jamais les paroles dedans.</li>
+      <li>Coche <em>Instrumental</em> : non. Langue : français.</li>
+      <li>Génère <strong>8 à 10 versions</strong>. C'est normal. Tu ne gardes que celle où les deux voix sont vraiment distinctes.</li>
+    </ul>
+
+    <pre><span class="c">— Style of music —</span>
+aggressive french rap battle, 140 BPM, minor key, hard boom bap drums
+with trap hi-hats, distorted 808 bass, medieval choir and orchestral
+horn sample, neon synth arpeggio, two very contrasting rap voices,
+punchy modern mix, vocals loud and clear up front
+
+<span class="c">— Exclude styles —</span>
+melodic singing, lofi, mumble rap, whisper, female pop chorus</pre>
+
+    <h3>Balises à insérer dans les paroles</h3>
+    <p>Suno lit les crochets comme des instructions de mise en scène. Remplace les titres de blocs de la Phase 01 par ceci :</p>
+    <pre>[Intro]
+[Verse 1: deep raspy male voice, slow half-time flow, angry]
+[Chorus: two voices together, shouted, anthemic]
+[Verse 2: high pitched autotuned voice, fast aggressive flow]
+[Chorus]
+[Outro: alternating one line each, then hard stop]
+[End]</pre>
+
+    <div class="note">
+      <span class="label">Le vrai piège</span>
+      <p>Suno ne garantit pas deux voix différentes dans un même morceau. Si après 10 essais les voix se ressemblent : génère <strong>deux morceaux séparés</strong> avec exactement le même prompt de style et le même BPM — l'un avec le couplet 1, l'autre avec le couplet 2 — puis assemble les deux dans CapCut. Le beat étant identique, le raccord est invisible si tu coupes sur un temps fort.</p>
+    </div>
+
+    <ul class="check">
+      <li>Version retenue téléchargée en <strong>WAV</strong> (pas mp3, tu perds de la dynamique au montage).</li>
+      <li>Si ton abonnement le permet : télécharge aussi les <strong>stems</strong> (voix seule + instru seule). L'instru seule sert pour l'intro, la fin et les respirations.</li>
+      <li>Morceau raccourci à 55 s maximum, coupé net sur un temps fort.</li>
+      <li>Note écrite quelque part : le BPM final et l'heure exacte de chaque bloc. Ça devient ta feuille de montage.</li>
+      <li>Vérifie les droits commerciaux de ton offre Suno avant de monétiser la vidéo.</li>
+    </ul>
+  </section>
+
+  <!-- ================= PHASE 03 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 03</span>
+      <span class="tool">Meta AI</span>
+      <span class="time">1 h 30</span>
+    </div>
+    <h2>Créer les personnages — et surtout les garder identiques</h2>
+    <p>C'est ici que 80 % des projets s'effondrent : à la dixième image, le chevalier n'a plus la même armure. La parade est mécanique, pas artistique : tu écris une <strong>fiche personnage</strong> figée, et tu recolles <em>mot pour mot</em> les deux premières lignes à chaque génération. Tu ne changes que la fin du prompt (cadrage, expression).</p>
+
+    <h3>Fiche personnage A — le Chevalier</h3>
+    <pre>3D animated cartoon character, modern animation feature film style,
+soft cinematic lighting, clean background separation --
+a short stocky medieval knight in dented steel armor, rusty helmet
+with a red plume, thick black beard, tired blue eyes, oversized
+shoulder plates, holding a sword like a microphone, cool steel-blue
+lighting, dark stone castle hall behind him
+-- full body, centered, vertical 9:16 composition</pre>
+
+    <h3>Fiche personnage B — la Cyber-Idole</h3>
+    <pre>3D animated cartoon character, modern animation feature film style,
+soft cinematic lighting, clean background separation --
+a slim futuristic pop idol with holographic silver hair, iridescent
+visor, oversized neon pink jacket, glowing earpiece, floating
+microphone, magenta and cyan neon lighting, rainy futuristic city
+rooftop at night
+-- full body, centered, vertical 9:16 composition</pre>
+
+    <h3>Les 5 images à produire par personnage</h3>
+    <p>Tu remplaces uniquement la dernière ligne du prompt, jamais le reste :</p>
+    <ol>
+      <li><code>-- full body, centered, vertical 9:16</code> — le plan de présentation.</li>
+      <li><code>-- close-up bust shot, mouth wide open shouting, angry</code> — le plan principal de rap, tu l'utiliseras le plus.</li>
+      <li><code>-- close-up bust shot, mouth closed, smug confident look</code> — l'alternance avec le précédent crée l'illusion de la parole.</li>
+      <li><code>-- three quarter view, arms crossed, looking down at camera</code> — le plan de mépris, pour les punchlines de l'autre.</li>
+      <li><code>-- wide shot of the environment, no character</code> — le décor seul, pour les transitions.</li>
+    </ol>
+
+    <div class="note">
+      <span class="label">Méthode de cohérence</span>
+      <p>Reste dans <strong>la même conversation</strong> Meta AI pour un personnage donné, et préfère « garde exactement ce personnage, change seulement l'angle » à une nouvelle génération depuis zéro. Si une image dérive, ne la corrige pas : jette-la et relance. Corriger coûte plus cher que régénérer.</p>
+    </div>
+
+    <ul class="check">
+      <li>10 images validées (5 par personnage), toutes en vertical.</li>
+      <li>1 image « face à face » des deux personnages pour le refrain et la miniature.</li>
+      <li>Fichiers renommés proprement : <code>A_01_plein-pied</code>, <code>A_02_bouche-ouverte</code>, <code>B_01…</code></li>
+      <li>Les deux fiches personnage sauvegardées dans tes notes — tu en auras besoin pour l'épisode 2.</li>
+    </ul>
+  </section>
+
+  <!-- ================= PHASE 04 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 04</span>
+      <span class="tool">Meta AI</span>
+      <span class="time">1 h</span>
+    </div>
+    <h2>Animer les plans</h2>
+    <p>Tu transformes chaque image validée en clip de quelques secondes. Ce sont tes rushes : au montage tu n'en garderas que 2 à 3 secondes à chaque fois.</p>
+
+    <pre><span class="c">— Prompt d'animation, plan de rap —</span>
+the character bobs their head to the beat, mouth moving as if
+rapping, one hand gesturing toward the camera, subtle cloth and
+hair movement, slow camera push in, no text, no captions
+
+<span class="c">— Prompt d'animation, plan de mépris —</span>
+the character slowly turns their head toward the camera, slight
+smirk, ambient light flicker, very slow camera drift, no text
+
+<span class="c">— Prompt de transition —</span>
+fast whip pan camera move flying out of a medieval stone hall
+into a neon city street at night, motion blur, no characters</pre>
+
+    <div class="note">
+      <span class="label">À savoir avant de t'acharner</span>
+      <p>Avec Meta AI + CapCut seuls, <strong>la synchronisation labiale exacte n'est pas atteignable</strong>. Ce n'est pas grave : les clips de rap professionnels ne montrent presque jamais une bouche synchronisée plus de 2 secondes d'affilée. Tu compenses par la grammaire du montage — plans courts coupés sur le temps fort, gros plans alternés bouche ouverte / bouche fermée, et paroles affichées à l'écran. L'œil suit le texte, pas les lèvres. Si tu veux vraiment du vrai lip-sync plus tard, il faudra un quatrième outil dédié ; ce n'est pas nécessaire pour ce clip.</p>
+    </div>
+
+    <h3>Feuille de plans — ce que tu dois avoir en stock</h3>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr><th>Temps</th><th>Plan</th><th>Qui</th><th>Contenu</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="tc">0:00–0:03</td><td>1–2</td><td><span class="who x">Les deux</span></td><td>Split screen des deux plein-pieds, zoom rapide, le titre s'écrase à l'écran.</td></tr>
+          <tr><td class="tc">0:03–0:05</td><td>3</td><td><span class="who x">Transition</span></td><td>Whip pan château → ville néon.</td></tr>
+          <tr><td class="tc">0:05–0:19</td><td>4–9</td><td><span class="who a">Chevalier</span></td><td>6 plans de ~2,3 s : gros plan bouche ouverte, décor, plan de mépris de l'Idole en réaction, retour gros plan.</td></tr>
+          <tr><td class="tc">0:19–0:24</td><td>10–11</td><td><span class="who x">Les deux</span></td><td>Face à face, coupes très rapides sur chaque temps.</td></tr>
+          <tr><td class="tc">0:24–0:38</td><td>12–17</td><td><span class="who b">Cyber-Idole</span></td><td>6 plans, coupes plus courtes que pour le Chevalier — son flow est plus rapide, le montage doit l'être aussi.</td></tr>
+          <tr><td class="tc">0:38–0:45</td><td>18–19</td><td><span class="who x">Les deux</span></td><td>Refrain, split screen, shake sur la grosse caisse.</td></tr>
+          <tr><td class="tc">0:45–0:55</td><td>20–24</td><td><span class="who x">Alterné</span></td><td>Une ligne chacun, un plan par ligne, puis noir sec sur le dernier temps.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= PHASE 05 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 05</span>
+      <span class="tool">CapCut</span>
+      <span class="time">1 h 30</span>
+    </div>
+    <h2>Monter</h2>
+
+    <h3>1. Préparer le projet</h3>
+    <ul>
+      <li>Nouveau projet, ratio <strong>9:16</strong>, résolution 1080×1920, <strong>30 fps</strong>.</li>
+      <li>Importe le WAV Suno <strong>en premier</strong> et pose-le sur la piste audio. Il ne bougera plus.</li>
+      <li>Sélectionne l'audio → <em>Battements / Beat</em> → détection automatique. Tu obtiens des repères jaunes sur chaque temps fort : ce sont tes points de coupe.</li>
+    </ul>
+
+    <h3>2. Poser les plans</h3>
+    <ul>
+      <li>Chaque coupe tombe <strong>sur un repère de beat</strong>, jamais entre deux. C'est ce détail qui fait la différence entre amateur et pro.</li>
+      <li>Durée cible : 2 à 3 s pour le Chevalier, 1,2 à 2 s pour l'Idole.</li>
+      <li>Sur les punchlines : <em>punch-in</em>. Deux images-clés d'échelle, 100 % → 108 % sur 8 images. Discret, mais l'œil le sent.</li>
+      <li>Zéro transition fantaisie. Coupe franche partout, sauf le whip pan entre les deux univers.</li>
+    </ul>
+
+    <h3>3. Le texte à l'écran</h3>
+    <ul>
+      <li><em>Sous-titres automatiques</em> en français, puis <strong>relis et corrige tout</strong> — l'IA se trompe sur les punchlines, précisément les lignes qui comptent.</li>
+      <li>Style karaoké mot par mot, police grasse et large, contour noir épais.</li>
+      <li><strong>Une couleur par personnage</strong> : bleu acier pour le Chevalier, magenta pour l'Idole. Le spectateur sait qui parle sans réfléchir.</li>
+      <li>Zone sûre : garde le texte entre 20 % et 70 % de la hauteur. En dessous, l'interface TikTok/Reels le recouvre.</li>
+    </ul>
+
+    <h3>4. Étalonnage et son</h3>
+    <ul>
+      <li>Plans du Chevalier : température froide, contraste élevé, légère désaturation. Plans de l'Idole : température chaude, saturation poussée, halo lumineux. Deux mondes = deux images.</li>
+      <li>Grain léger et vignettage discret sur tout le montage : ça unifie des images générées séparément, c'est le meilleur pansement anti-« fait par IA ».</li>
+      <li>Sound design : <em>riser</em> avant chaque refrain, <em>impact</em> sur les punchlines, scratch de vinyle sur la transition d'univers. Ces sons sont dans la bibliothèque CapCut.</li>
+      <li>Baisse les effets à environ −12 dB sous la musique. On doit toujours comprendre les paroles.</li>
+    </ul>
+
+    <h3>5. Export</h3>
+    <ul>
+      <li>1080×1920, 30 fps, débit <strong>élevé</strong> (ou personnalisé ≥ 16 Mbps), codec H.264.</li>
+      <li>Désactive toute « amélioration automatique » ou « HDR » : ça délave les néons.</li>
+      <li>Exporte <strong>sans filigrane</strong> — vérifie la fin de la timeline, l'outro CapCut s'ajoute parfois toute seule.</li>
+    </ul>
+  </section>
+
+  <!-- ================= PHASE 06 ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">PHASE 06</span>
+      <span class="tool">Publication</span>
+      <span class="time">30 min</span>
+    </div>
+    <h2>Sortir le clip</h2>
+    <ul>
+      <li><strong>Les 3 premières secondes décident de tout.</strong> Si le concept n'est pas lisible à 0:03, remonte l'accroche — pas le reste.</li>
+      <li>Miniature : l'image face-à-face, avec les deux noms. Même typo, même couleurs que les sous-titres.</li>
+      <li>Titre : pose une question qui appelle un camp. « Qui gagne cette battle ? » fait plus de commentaires que « Chevalier vs Cyber-Idole ».</li>
+      <li>Publie le même fichier sur TikTok, Reels et Shorts. Ne réexporte pas depuis chaque appli, tu recompresses deux fois.</li>
+      <li>Épingle un commentaire qui annonce l'épisode 2 et demande le prochain duo. C'est ce qui transforme un clip en série — et tes fiches personnage sont déjà prêtes pour ça.</li>
+    </ul>
+  </section>
+
+  <!-- ================= QC ================= -->
+  <section class="phase">
+    <div class="phase-head">
+      <span class="num">CONTRÔLE</span>
+      <span class="tool">Avant export</span>
+    </div>
+    <h2>La check-list finale</h2>
+    <ul class="check">
+      <li>Regardé en entier <strong>sans le son</strong> : on comprend qui affronte qui ?</li>
+      <li>Regardé en entier <strong>son au maximum</strong> : aucune saturation, aucun blanc sonore ?</li>
+      <li>Toutes les coupes tombent sur un beat ?</li>
+      <li>Chaque personnage a exactement la même tête du début à la fin ?</li>
+      <li>Sous-titres relus mot à mot, aucun dans la zone basse de l'interface ?</li>
+      <li>Aucune marque, aucun logo, aucun personnage sous copyright dans le cadre ?</li>
+      <li>Dernière image : coupure nette, pas de fondu mou, pas de filigrane ?</li>
+      <li>Fichier de moins de 60 s, en 1080×1920 ?</li>
+    </ul>
+  </section>
+
+  <!-- ================= START ================= -->
+  <div class="final">
+    <h2>Par quoi tu commences maintenant</h2>
+    <ol>
+      <li><strong>Écris les 8 mesures du Chevalier.</strong> Rien d'autre. Pas d'image, pas de Suno, pas de CapCut. Tant que le texte n'est pas drôle sur papier, le clip ne le sera pas à l'écran.</li>
+      <li><strong>Colle le texte complet dans Suno</strong> avec le prompt de style, et lance 8 générations d'un coup pendant que tu relis tes paroles.</li>
+      <li><strong>Pendant que Suno tourne, ouvre Meta AI</strong> et génère les deux plein-pieds. Tu sauras tout de suite si tes personnages fonctionnent visuellement.</li>
+    </ol>
+  </div>
+
+</div>
