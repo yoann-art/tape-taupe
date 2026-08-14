@@ -579,9 +579,35 @@ rooftop at night
       <p>Reste dans <strong>la même conversation</strong> Meta AI pour un personnage donné, et préfère « garde exactement ce personnage, change seulement l'angle » à une nouvelle génération depuis zéro. Si une image dérive, ne la corrige pas : jette-la et relance. Corriger coûte plus cher que régénérer.</p>
     </div>
 
+    <h3>Le plan face à face — ne le génère pas, fabrique-le</h3>
+    <p>Dès que deux personnages entrent dans le même cadre, les modèles <strong>échangent leurs attributs</strong> : le chevalier hérite des cheveux argentés, l'idole se retrouve en armure. Plutôt que de lutter, on assemble le plan dans CapCut à partir des images déjà validées — cohérence garantie, et le plan devient animable.</p>
+    <ol>
+      <li><strong>L'arène :</strong> monde A sur la piste du bas, monde B au-dessus. Sur monde B, applique <em>Masque → Linéaire</em>, tourne-le à 90°, place la ligne au centre, adoucis le bord. Décor moitié château, moitié ville néon.</li>
+      <li><strong>Le détourage :</strong> importe les deux plein-pieds, chacun sur sa piste, puis <em>Découpe → Supprimer l'arrière-plan</em>.</li>
+      <li><strong>Le placement :</strong> <em>Miroir</em> horizontal si l'un regarde du mauvais côté, et surtout les <strong>deux têtes à la même hauteur</strong>.</li>
+      <li><strong>Le raccord de lumière :</strong> température froide sur le Chevalier, magenta sur l'Idole. Sans cette étape les deux découpes ont l'air collées ; avec elle, elles ont l'air éclairées par la même scène.</li>
+      <li>Un trait de lumière vertical sur la couture, et tu peux faire avancer chaque personnage vers le centre sur le refrain.</li>
+    </ol>
+    <p>Pour la <em>miniature</em> seulement, où une image fixe suffit, une génération unique reste plus belle. Garde alors chaque fiche en un bloc continu, sans les entrelacer :</p>
+    <pre>3D animated cartoon character art, modern animation feature film style,
+soft cinematic lighting -- two characters facing each other in profile,
+standing very close, foreheads almost touching, tense stare-down.
+
+ON THE LEFT: a short stocky medieval knight in dented steel armor,
+rusty helmet with a red plume, thick black beard, tired blue eyes,
+oversized shoulder plates, lit by cold steel-blue torchlight.
+
+ON THE RIGHT: a slim futuristic pop idol with holographic silver hair,
+iridescent visor, oversized neon pink jacket, glowing earpiece, lit by
+magenta and cyan neon.
+
+Background split down the middle: dark medieval stone hall on the left,
+rainy neon city at night on the right, a vertical seam of light between
+them -- full body, symmetrical, centered, vertical 9:16 composition</pre>
+
     <ul class="check">
       <li>10 images validées (5 par personnage), toutes en vertical.</li>
-      <li>1 image « face à face » des deux personnages pour le refrain et la miniature.</li>
+      <li>Le plan face à face assemblé dans CapCut, exporté ou gardé en composition.</li>
       <li>Fichiers renommés proprement : <code>A_01_plein-pied</code>, <code>A_02_bouche-ouverte</code>, <code>B_01…</code></li>
       <li>Les deux fiches personnage sauvegardées dans tes notes — tu en auras besoin pour l'épisode 2.</li>
     </ul>
